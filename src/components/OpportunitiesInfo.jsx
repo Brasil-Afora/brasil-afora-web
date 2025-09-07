@@ -21,7 +21,7 @@ import {
     FaTimesCircle
 } from 'react-icons/fa';
 
-// O HOOK CORRIGIDO
+
 function useLocalStorage(key, initialValue) {
     const [value, setValue] = useState(() => {
         try {
@@ -148,40 +148,40 @@ const OpportunitiesInfo = () => {
                         <p className="text-base text-white leading-relaxed mb-6">{oportunidade.descricao || 'N/A'}</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-base">
                              <div className="flex items-center space-x-3">
-                                <FaGlobeAmericas className="text-amber-500 flex-shrink-0" />
-                                <div>
-                                    <p className="font-semibold text-amber-500">País de Destino</p>
-                                    <p className="text-white">{oportunidade.pais || 'N/A'}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                                <FaMapMarkerAlt className="text-amber-500 flex-shrink-0" />
-                                <div>
-                                    <p className="font-semibold text-amber-500">Cidade</p>
-                                    <p className="text-white">{oportunidade.cidade || 'N/A'}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                                <FaGraduationCap className="text-amber-500 flex-shrink-0" />
-                                <div>
-                                    <p className="font-semibold text-amber-500">Nível de Ensino</p>
-                                    <p className="text-white">{oportunidade.nivelEnsino || 'N/A'}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                                <FaUser className="text-amber-500 flex-shrink-0" />
-                                <div>
-                                    <p className="font-semibold text-amber-500">Faixa Etária</p>
-                                    <p className="text-white">{oportunidade.faixaEtaria || 'N/A'}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                                <FaClock className="text-amber-500 flex-shrink-0" />
-                                <div>
-                                    <p className="font-semibold text-amber-500">Duração</p>
-                                    <p className="text-white">{oportunidade.duracao || 'N/A'}</p>
-                                </div>
-                            </div>
+                                 <FaGlobeAmericas className="text-amber-500 flex-shrink-0" />
+                                 <div>
+                                     <p className="font-semibold text-amber-500">País de Destino</p>
+                                     <p className="text-white">{oportunidade.pais || 'N/A'}</p>
+                                 </div>
+                             </div>
+                             <div className="flex items-center space-x-3">
+                                 <FaMapMarkerAlt className="text-amber-500 flex-shrink-0" />
+                                 <div>
+                                     <p className="font-semibold text-amber-500">Cidade</p>
+                                     <p className="text-white">{oportunidade.cidade || 'N/A'}</p>
+                                 </div>
+                             </div>
+                             <div className="flex items-center space-x-3">
+                                 <FaGraduationCap className="text-amber-500 flex-shrink-0" />
+                                 <div>
+                                     <p className="font-semibold text-amber-500">Nível de Ensino</p>
+                                     <p className="text-white">{oportunidade.nivelEnsino || 'N/A'}</p>
+                                 </div>
+                             </div>
+                             <div className="flex items-center space-x-3">
+                                 <FaUser className="text-amber-500 flex-shrink-0" />
+                                 <div>
+                                     <p className="font-semibold text-amber-500">Faixa Etária</p>
+                                     <p className="text-white">{oportunidade.faixaEtaria || 'N/A'}</p>
+                                 </div>
+                             </div>
+                             <div className="flex items-center space-x-3">
+                                 <FaClock className="text-amber-500 flex-shrink-0" />
+                                 <div>
+                                     <p className="font-semibold text-amber-500">Duração</p>
+                                     <p className="text-white">{oportunidade.duracao || 'N/A'}</p>
+                                 </div>
+                             </div>
                         </div>
                     </div>
                 );
@@ -312,73 +312,83 @@ const OpportunitiesInfo = () => {
                     alt={`Imagem de Capa para ${oportunidade.nome}`}
                     className="w-full h-full object-cover absolute inset-0"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-end p-16">
-                    <div className="flex items-center text-white">
+                <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-end p-8 md:p-16 pb-12 md:pb-24">
+                    <div className="flex items-center text-white mb-2">
                         <FaGlobeAmericas className="mr-2" />
-                        <span className="font-light">{oportunidade.pais}</span>
+                        <span className="font-light text-sm md:text-base">{oportunidade.pais}</span>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-white mt-2">
+                    <h1 className="text-2xl md:text-5xl font-extrabold text-white">
                         {oportunidade.nome}
                     </h1>
                 </div>
             </div>
 
             <div className="container mx-auto px-4 -mt-8 relative z-10">
-                <div className="flex justify-between items-center bg-slate-900 rounded-xl p-6 shadow-xl mb-8 border border-slate-950">
-                    <button onClick={() => navigate(-1)} className="flex items-center text-amber-500 hover:text-amber-600 transition-colors">
+                <div className="bg-slate-900 rounded-xl p-6 shadow-xl mb-8 border border-slate-950 flex flex-col md:flex-row md:justify-between md:items-center">
+                    <button onClick={() => navigate(-1)} className="hidden md:flex items-center text-amber-500 hover:text-amber-600 transition-colors">
                         <FaChevronLeft className="mr-2" /> Voltar
                     </button>
-                    <div className="flex items-center gap-4">
+                    
+                    
+                    <div className="flex justify-between items-center w-full md:hidden mb-4">
+                        <button onClick={() => navigate(-1)} className="flex items-center text-amber-500 hover:text-amber-600 transition-colors">
+                            <FaChevronLeft className="mr-2" /> Voltar
+                        </button>
+                    </div>
+
+                    
+                    <div className="flex flex-col md:flex-row md:items-center gap-4 w-full md:w-auto">
                         <button
                             onClick={handleFavoriteToggle}
-                            className={`flex items-center font-bold py-2 px-6 rounded-full transition-colors duration-200
+                            className={`flex items-center justify-center font-bold py-2 px-6 rounded-full transition-colors duration-200
                             ${isFavorited ? 'bg-amber-500 text-black' : 'bg-slate-950 text-white hover:bg-slate-800'}`}
                         >
-                            <FaHeart className="mr-2" />
-                            {isFavorited ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos'}
+                            <FaHeart className={`mr-2 ${isFavorited ? 'text-black' : 'text-amber-500'}`} />
+                            {isFavorited ? 'Remover' : 'Adicionar aos Favoritos'}
                         </button>
                         <a
                             href={oportunidade.linkOficial || '#'}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-amber-500 text-black font-bold py-2 px-6 rounded-full hover:bg-amber-600 transition-colors duration-300"
+                            className="inline-flex items-center justify-center gap-2 bg-amber-500 text-black font-bold py-2 px-6 rounded-full hover:bg-amber-600 transition-colors duration-300"
                         >
                             Aplicar agora <FaExternalLinkAlt className="ml-2" />
                         </a>
                     </div>
+
                 </div>
-            </div>
+                
+                
+                <div className="py-8">
+                    <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-6">
+                        <button
+                            onClick={() => setActiveTab('sobre')}
+                            className={`px-4 py-2 rounded-full font-bold transition-colors text-sm md:text-base ${activeTab === 'sobre' ? 'bg-amber-500 text-black' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
+                        >
+                            <FaInfoCircle className="inline-block mr-2" /> Sobre
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('requisitos')}
+                            className={`px-4 py-2 rounded-full font-bold transition-colors text-sm md:text-base ${activeTab === 'requisitos' ? 'bg-amber-500 text-black' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
+                        >
+                            <FaFileAlt className="inline-block mr-2" /> Requisitos
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('custos-bolsas')}
+                            className={`px-4 py-2 rounded-full font-bold transition-colors text-sm md:text-base ${activeTab === 'custos-bolsas' ? 'bg-amber-500 text-black' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
+                        >
+                            <FaMoneyBillWave className="inline-block mr-2" /> Custos e Bolsas
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('inscricao')}
+                            className={`px-4 py-2 rounded-full font-bold transition-colors text-sm md:text-base ${activeTab === 'inscricao' ? 'bg-amber-500 text-black' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
+                        >
+                            <FaPaperclip className="inline-block mr-2" /> Inscrição
+                        </button>
+                    </div>
 
-            <div className="container mx-auto px-4 py-8">
-                <div className="flex flex-wrap gap-2 mb-6">
-                    <button
-                        onClick={() => setActiveTab('sobre')}
-                        className={`px-6 py-2 rounded-full font-bold transition-colors ${activeTab === 'sobre' ? 'bg-amber-500 text-black' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
-                    >
-                        <FaInfoCircle className="inline-block mr-2" /> Sobre
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('requisitos')}
-                        className={`px-6 py-2 rounded-full font-bold transition-colors ${activeTab === 'requisitos' ? 'bg-amber-500 text-black' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
-                    >
-                        <FaFileAlt className="inline-block mr-2" /> Requisitos
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('custos-bolsas')}
-                        className={`px-6 py-2 rounded-full font-bold transition-colors ${activeTab === 'custos-bolsas' ? 'bg-amber-500 text-black' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
-                    >
-                        <FaMoneyBillWave className="inline-block mr-2" /> Custos e Bolsas
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('inscricao')}
-                        className={`px-6 py-2 rounded-full font-bold transition-colors ${activeTab === 'inscricao' ? 'bg-amber-500 text-black' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
-                    >
-                        <FaPaperclip className="inline-block mr-2" /> Inscrição
-                    </button>
+                    {renderTabContent()}
                 </div>
-
-                {renderTabContent()}
-
             </div>
 
             {popup.visible && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FaMapMarkerAlt, FaUserGraduate, FaChevronDown, FaChevronUp, FaStar, FaInfoCircle, FaDollarSign, FaPercent, FaBriefcase, FaGraduationCap, FaExternalLinkAlt, FaEnvelope, FaBookOpen, FaUserTie } from 'react-icons/fa';
 import { RiHeartFill, RiHeartLine } from 'react-icons/ri';
 import logo from "../assets/logo.png";
@@ -111,7 +111,8 @@ const CollegeList = ({ data, onClearFilters }) => {
         }
         setActiveSection(section);
     };
-
+    
+    
     const getBorderColorClass = (acceptanceRate) => {
         const rate = Number(acceptanceRate.replace('%', ''));
         if (rate >= 0 && rate <= 5) return 'border-red-500';
@@ -188,7 +189,7 @@ const CollegeList = ({ data, onClearFilters }) => {
             </div>
         );
     };
-
+    
     return (
         <div className="p-4 sm:p-0">
             <div className="container mx-auto">
@@ -207,7 +208,7 @@ const CollegeList = ({ data, onClearFilters }) => {
                                     <div className="w-full flex flex-col p-4">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex-grow">
-                                                <h2 className="text-xl font-semibold text-white">{uni.nome} ({uni.sigla})</h2>
+                                                <h2 className="text-xl font-semibold text-white">{uni.nome}</h2>
                                                 <div className="flex items-center gap-2 text-white mt-1">
                                                     <FaMapMarkerAlt className="w-4 h-4 text-amber-500" />
                                                     <p className="text-sm">{uni.cidade}, {uni.estado}</p>
@@ -238,7 +239,6 @@ const CollegeList = ({ data, onClearFilters }) => {
                                                 <span className="font-semibold text-amber-500">Alunos:</span>
                                                 <div className="flex items-center justify-between w-full">
                                                     <p className="text-sm text-white font-semibold">{formatData(uni.totalAlunos)}</p>
-                                                    {/* MODIFIED: The expand button is a simple chevron, to make the card appear clickable. */}
                                                     <div className="flex items-center gap-2 text-white opacity-70 transition-opacity">
                                                         {isExpanded ? (
                                                             <FaChevronUp className="w-4 h-4" />
@@ -280,6 +280,7 @@ const CollegeList = ({ data, onClearFilters }) => {
                                                 </button>
                                             </div>
 
+                                            
                                             {activeSection === 'geral' && (
                                                 <div className="grid md:grid-cols-2 gap-4 bg-slate-950 p-4 rounded-lg shadow-inner border border-slate-900">
                                                     {renderIconInfo(<FaMapMarkerAlt />, 'Localização', `${uni.cidade}, ${uni.estado}`)}
@@ -309,7 +310,7 @@ const CollegeList = ({ data, onClearFilters }) => {
                                                     {renderInfoItem('Política Financeira', uni.politicaFinanceira)}
                                                 </div>
                                             )}
-                                            
+
                                             {activeSection === 'application' && (
                                                 <div className="grid md:grid-cols-2 gap-4 bg-slate-950 p-4 rounded-lg shadow-inner border border-slate-900">
                                                     {renderIconInfo(<FaPercent />, 'Taxa de Aceitação', uni.taxaAceitacao)}

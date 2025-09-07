@@ -3,7 +3,7 @@ import OpportunitiesFilter from './OpportunitiesFilter';
 import OpportunitiesList from './OpportunitiesList';
 import { oportunidades as oportunidadesOriginais } from '../utils/opportunitiesData';
 import useSessionStorage from '../utils/useSessionStorage';
-import { FaFilter, FaGraduationCap, FaTimesCircle, FaSlidersH, FaTimes } from 'react-icons/fa'; // Adicionado FaSlidersH e FaTimes
+import { FaFilter, FaGraduationCap, FaTimesCircle, FaSlidersH, FaTimes, FaCheck } from 'react-icons/fa';
 import logo from "../assets/logo.png";
 
 const OpportunitiesMain = () => {
@@ -18,11 +18,12 @@ const OpportunitiesMain = () => {
     };
 
     const [filtros, setFiltros] = useSessionStorage('oportunidadesFiltros', initialFiltros);
+    const [filtrosTemporarios, setFiltrosTemporarios] = useState(filtros);
     const [oportunidadesFiltradas, setOportunidadesFiltradas] = useState(oportunidadesOriginais);
     const [showTitle, setShowTitle] = useState(false);
     const [showContent, setShowContent] = useState(false);
     const isInitialMount = useRef(true);
-    const [showFilter, setShowFilter] = useState(false); // Novo estado para controlar o modal de filtro
+    const [showFilter, setShowFilter] = useState(false);
 
     const isFilterActive = () => {
         return (
@@ -132,11 +133,18 @@ const OpportunitiesMain = () => {
 
     const handleClearAllFilters = () => {
         setFiltros(initialFiltros);
-        setShowFilter(false); // Fecha o modal após limpar os filtros
+        setFiltrosTemporarios(initialFiltros);
+        setShowFilter(false);
     };
 
     const handleToggleFilterSidebar = () => {
+        setFiltrosTemporarios(filtros);
         setShowFilter(!showFilter);
+    };
+
+    const handleApplyFilters = () => {
+        setFiltros(filtrosTemporarios);
+        setShowFilter(false);
     };
 
     const baseTransition = "transition-all duration-500 ease-in-out transform";
@@ -181,7 +189,7 @@ const OpportunitiesMain = () => {
 
     return (
         <div className="bg-slate-950 text-white min-h-screen font-inter">
-            {/* Título da página */}
+            
             {!isFilterActive() && (
                 <div className={`px-8 pt-8 pb-12 text-center ${baseTransition} ${showTitle ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     <div className="flex justify-center items-center gap-2 mb-2">
@@ -196,18 +204,7 @@ const OpportunitiesMain = () => {
                 </div>
             )}
             
-            {/* Botão de filtro flutuante para mobile */}
-            <div className="md:hidden fixed bottom-4 right-4 z-50">
-                <button
-                    onClick={handleToggleFilterSidebar}
-                    className="p-4 rounded-full bg-amber-500 text-black shadow-lg"
-                    aria-label="Abrir filtros"
-                >
-                    <FaSlidersH size={24} />
-                </button>
-            </div>
-
-            {/* Filtros em overlay para mobile */}
+            
             {showFilter && (
                 <div className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-75 flex items-center justify-center">
                     <div className="bg-slate-900 rounded-lg p-6 w-11/12 max-h-[90vh] overflow-y-auto">
@@ -217,38 +214,55 @@ const OpportunitiesMain = () => {
                                 <FaTimes size={24} />
                             </button>
                         </div>
-                        <OpportunitiesFilter setFiltros={setFiltros} filtrosIniciais={initialFiltros} filtros={filtros} />
-                        <button
-                            onClick={handleClearAllFilters}
-                            className="mt-4 w-full py-2 rounded-lg font-semibold bg-red-500 hover:bg-red-600 text-white transition-colors"
-                        >
-                            Limpar Filtros
-                        </button>
+                        <OpportunitiesFilter setFiltros={setFiltrosTemporarios} filtros={filtrosTemporarios} filtrosIniciais={initialFiltros}/>
+                        <div className="flex gap-2 mt-4">
+                            <button
+                                onClick={handleApplyFilters}
+                                className="w-full py-2 rounded-lg font-semibold bg-amber-500 hover:bg-amber-600 text-black transition-colors"
+                            >
+                                <span className="flex items-center justify-center gap-2"><FaCheck /> Aplicar Filtros</span>
+                            </button>
+                            <button
+                                onClick={handleClearAllFilters}
+                                className="w-full py-2 rounded-lg font-semibold bg-red-500 hover:bg-red-600 text-white transition-colors"
+                            >
+                                <span className="flex items-center justify-center gap-2"><FaTimes /> Limpar Filtros</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
 
             <div className="flex flex-col md:flex-row px-6 gap-6">
-                {/* Filtro em desktop */}
+                
                 <div className={`hidden md:block md:w-1/4 ${baseTransition} ${showContent ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
                     <div className="p-6 bg-slate-900 rounded-lg shadow-lg sticky top-24 border border-slate-950">
                         <div className="flex items-center text-lg font-bold mb-4 text-amber-500">
                             <FaFilter className="text-amber-500 mr-2" />
                             Filtros
                         </div>
-                        <OpportunitiesFilter setFiltros={setFiltros} filtrosIniciais={initialFiltros} filtros={filtros} />
+                        <OpportunitiesFilter setFiltros={setFiltros} filtros={filtros} filtrosIniciais={initialFiltros} />
                     </div>
                 </div>
 
                 <div className={`md:w-3/4 ${baseTransition} ${showContent ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
                         <p className="text-lg font-semibold text-white">{`Exibindo ${oportunidadesFiltradas.length} oportunidades`}</p>
+                        
+                        <div className="md:hidden w-full mt-4">
+                            <button
+                                onClick={handleToggleFilterSidebar}
+                                className="w-full py-2 rounded-lg font-semibold text-black bg-amber-500 hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <FaSlidersH /> Abrir Filtros
+                            </button>
+                        </div>
                         {renderAppliedFilters()}
                     </div>
                     {oportunidadesFiltradas.length > 0 ? (
                         <OpportunitiesList data={oportunidadesFiltradas} />
                     ) : (
-                        <div className="flex flex-col items-center justify-center p-12 bg-slate-900 rounded-lg shadow-lg border border-slate-950">
+                        <div className="flex flex-col items-center justify-center p-12 bg-slate-950 rounded-lg shadow-lg border border-slate-950">
                             <img src={logo} alt="Logo Global Passport" className="h-16 mb-4 opacity-80" />
                             <h3 className="text-2xl font-bold mb-2 text-white">Nenhuma oportunidade encontrada</h3>
                             <p className="text-sm text-white mb-6">Tente ajustar seus filtros para ver mais resultados.</p>

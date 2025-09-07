@@ -2,7 +2,7 @@ export const oportunidades = [
   {
     "id": 1,
     "nome": "Programa de Verão em Inovação Tecnológica",
-    "imagem": "https://images.unsplash.com/photo-1542831371-29b0f74f945c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "imagem": "https://wallpapers.com/images/high/travel-pictures-2w3ecn151g4ney5s.webp",
     "pais": "Estados Unidos",
     "cidade": "Boston",
     "instituicaoResponsavel": "MIT - Massachusetts Institute of Technology",
@@ -26,7 +26,7 @@ export const oportunidades = [
   {
     "id": 2,
     "nome": "Bolsa de Doutorado em Energias Renováveis",
-    "imagem": "https://images.unsplash.com/photo-1510619586150-1376d29944a1?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "imagem": "https://images.unsplash.com/photo-1755398105315-a124a12152da?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     "pais": "Alemanha",
     "cidade": "Berlim",
     "instituicaoResponsavel": "Universidade Técnica de Berlim",
@@ -50,7 +50,7 @@ export const oportunidades = [
   {
     "id": 3,
     "nome": "Intercâmbio Cultural na Costa Rica",
-    "imagem": "https://images.unsplash.com/photo-1594950346077-d7e7c84495de?q=80&w=1925&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "imagem": "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
     "pais": "Costa Rica",
     "cidade": "San José",
     "instituicaoResponsavel": "Organização Pura Vida Voluntariado",
@@ -74,7 +74,7 @@ export const oportunidades = [
   {
     "id": 4,
     "nome": "Bolsa de Pesquisa para Pós-Doutorado em Antropologia",
-    "imagem": "https://images.unsplash.com/photo-1549721092-23f4b50c0071?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "imagem": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05",
     "pais": "França",
     "cidade": "Paris",
     "instituicaoResponsavel": "EHESS - École des Hautes Études en Sciences Sociales",
@@ -98,7 +98,7 @@ export const oportunidades = [
   {
     "id": 5,
     "nome": "Programa de Graduação em Design de Jogos",
-    "imagem": "https://images.unsplash.com/photo-1522881267597-1521d9607f20?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "imagem": "https://images.pexels.com/photos/2387418/pexels-photo-2387418.jpeg",
     "pais": "Canadá",
     "cidade": "Vancouver",
     "instituicaoResponsavel": "Vancouver Film School",
@@ -122,7 +122,7 @@ export const oportunidades = [
   {
     "id": 6,
     "nome": "Estágio em Relações Internacionais",
-    "imagem": "https://images.unsplash.com/photo-1528695027581-229418641974?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "imagem": "https://images.unsplash.com/photo-1454496522488-7a8e488e8606",
     "pais": "Suíça",
     "cidade": "Genebra",
     "instituicaoResponsavel": "Organização das Nações Unidas (ONU)",
@@ -146,7 +146,7 @@ export const oportunidades = [
   {
     "id": 7,
     "nome": "Curso de Idiomas em Tóquio",
-    "imagem": "https://images.unsplash.com/photo-1540841267425-4700d8d06b3e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "imagem": "https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg",
     "pais": "Japão",
     "cidade": "Tóquio",
     "instituicaoResponsavel": "Escola de Línguas de Shinjuku",
@@ -170,7 +170,7 @@ export const oportunidades = [
   {
     "id": 8,
     "nome": "Bolsa de Mestrado em Sustentabilidade Ambiental",
-    "imagem": "https://images.unsplash.com/photo-1517441865463-b6d3c2602188?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "imagem": "https://images.unsplash.com/photo-1448375240586-882707db888b",
     "pais": "Suécia",
     "cidade": "Estocolmo",
     "instituicaoResponsavel": "KTH Royal Institute of Technology",
@@ -194,7 +194,7 @@ export const oportunidades = [
   {
     "id": 9,
     "nome": "Bolsa de Ensino Médio nos Países Baixos",
-    "imagem": "https://images.unsplash.com/photo-1502602898687-95193910f545?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "imagem": "https://images.pexels.com/photos/38136/pexels-photo-38136.jpeg",
     "pais": "Países Baixos",
     "cidade": "Amsterdã",
     "instituicaoResponsavel": "AFS Intercultural Programs",
@@ -218,7 +218,7 @@ export const oportunidades = [
   {
     "id": 10,
     "nome": "Mobilidade Acadêmica na Universidade de Coimbra",
-    "imagem": "https://images.unsplash.com/photo-1560965319-e58721c0b396?q=80&w=1980&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "imagem": "https://images.unsplash.com/photo-1426604966848-d7adac402bff",
     "pais": "Portugal",
     "cidade": "Coimbra",
     "instituicaoResponsavel": "Universidade de Coimbra",

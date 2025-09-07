@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaChevronDown, FaChevronUp, FaSearch } from 'react-icons/fa';
 
-const OpportunitiesFilter = ({ setFiltros, filtrosIniciais, filtros }) => {
+const OpportunitiesFilter = ({ setFiltros, filtros, filtrosIniciais }) => {
     const [openFilter, setOpenFilter] = useState(null);
     const filterRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -104,7 +104,7 @@ const OpportunitiesFilter = ({ setFiltros, filtrosIniciais, filtros }) => {
 
     return (
         <div ref={filterRef} className="flex flex-col gap-2 font-inter">
-            {/* Tipo de Programa */}
+            
             <div className={`relative ${commonWidth}`}>
                 <label className="text-white mb-1 block text-xs">
                     <span className="text-amber-500">Tipo de Programa</span>
@@ -134,7 +134,7 @@ const OpportunitiesFilter = ({ setFiltros, filtrosIniciais, filtros }) => {
                     </div>
                 )}
             </div>
-            {/* Nível de Ensino */}
+            
             <div className={`relative ${commonWidth}`}>
                 <label className="text-white mb-1 block text-xs">
                     <span className="text-amber-500">Nível de Ensino</span>
@@ -164,7 +164,7 @@ const OpportunitiesFilter = ({ setFiltros, filtrosIniciais, filtros }) => {
                     </div>
                 )}
             </div>
-            {/* Países de Destino */}
+            
             <div className={`relative ${commonWidth}`}>
                 <label className="text-white mb-1 block text-xs">
                     <span className="text-amber-500">Países de Destino</span>
@@ -206,7 +206,7 @@ const OpportunitiesFilter = ({ setFiltros, filtrosIniciais, filtros }) => {
                     </div>
                 )}
             </div>
-            {/* Idiomas */}
+            
             <div className={`relative ${commonWidth}`}>
                 <label className="text-white mb-1 block text-xs">
                     <span className="text-amber-500">Idiomas</span>
@@ -236,7 +236,7 @@ const OpportunitiesFilter = ({ setFiltros, filtrosIniciais, filtros }) => {
                     </div>
                 )}
             </div>
-            {/* Taxa de Aplicação */}
+            
             <div className={`relative ${commonWidth}`}>
                 <label className="text-white mb-1 block text-xs">
                     <span className="text-amber-500">Taxa de Aplicação</span>
@@ -266,7 +266,7 @@ const OpportunitiesFilter = ({ setFiltros, filtrosIniciais, filtros }) => {
                     </div>
                 )}
             </div>
-            {/* Tipo de Bolsa */}
+            
             <div className={`relative ${commonWidth}`}>
                 <label className="text-white mb-1 block text-xs">
                     <span className="text-amber-500">Tipo de Bolsa</span>
@@ -296,7 +296,7 @@ const OpportunitiesFilter = ({ setFiltros, filtrosIniciais, filtros }) => {
                     </div>
                 )}
             </div>
-            {/* Idade */}
+            
             <div className={commonWidth}>
                 <label className="text-white mb-1 block text-xs" htmlFor="idade">
                     <span className="text-amber-500">Sua idade</span>
@@ -310,7 +310,7 @@ const OpportunitiesFilter = ({ setFiltros, filtrosIniciais, filtros }) => {
                     placeholder="Ex: 18"
                 />
             </div>
-            <div className="mt-2">
+            <div className="mt-2 hidden md:block">
                 <button
                     onClick={handleClearFilters}
                     disabled={!isFilterActive()}

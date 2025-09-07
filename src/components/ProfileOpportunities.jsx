@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaTrash, FaMapMarkerAlt, FaCalendarAlt, FaExternalLinkAlt, FaPlus, FaChevronDown, FaChevronUp, FaTimesCircle } from 'react-icons/fa';
 
-// O HOOK CORRIGIDO
+
 function useLocalStorage(key, initialValue) {
     const [value, setValue] = useState(() => {
         try {
             const item = window.localStorage.getItem(key);
             const savedValue = item ? JSON.parse(item) : initialValue;
 
-            // Garante que o valor salvo é um array, senão retorna o valor inicial
+            
             if (!Array.isArray(savedValue)) {
                 console.warn(`Local storage para a chave "${key}" não é um array. Redefinindo para o valor inicial.`);
                 return initialValue;
@@ -38,12 +38,12 @@ const getTimeRemaining = (deadlineString) => {
         return null;
     }
     
-    // A lógica foi alterada para o novo formato DD/MM/YYYY
+    
     const parts = deadlineString.split('/');
     if (parts.length !== 3) return null;
 
     const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1; // Mês é 0-indexed
+    const month = parseInt(parts[1], 10) - 1;
     const year = parseInt(parts[2], 10);
 
     if (isNaN(day) || isNaN(month) || isNaN(year)) {

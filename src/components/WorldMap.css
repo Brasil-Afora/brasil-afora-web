@@ -1,4 +1,4 @@
-/* src/components/WorldMap.css */
+
 .custom-popup .leaflet-popup-content-wrapper {
     background-color: #facc15 !important;
     color: #1e293b !important;
@@ -14,27 +14,27 @@
     font-size: 0.8rem !important;
     font-weight: bold !important;
     margin: 8px !important;
-    padding: 3px !important; /* Aumentado o padding para dar mais largura */
-    min-width: 120px; /* Garante uma largura mínima para o texto */
+    padding: 3px !important;
+    min-width: 120px; 
 }
-/* src/components/WorldMap.css */
 
-/* Estiliza a barra de rolagem para navegadores Webkit (Chrome, Safari, Edge) */
+
+
 #map-sidebar-scroll::-webkit-scrollbar {
-    width: 8px; /* Largura da barra */
+    width: 8px; 
 }
 
 #map-sidebar-scroll::-webkit-scrollbar-track {
-    background: #0f172a; /* Cor de fundo da trilha, igual ao bg-slate-900 */
+    background: #0f172a; 
 }
 
 #map-sidebar-scroll::-webkit-scrollbar-thumb {
-    background-color: #334155; /* Cor da barra móvel (um tom mais claro de cinza, slate-700) */
-    border-radius: 4px; /* Cantos arredondados */
+    background-color: #334155; 
+    border-radius: 4px; 
 }
 
-/* Estiliza a barra de rolagem para o Firefox */
+
 #map-sidebar-scroll {
-    scrollbar-width: thin; /* Largura da barra */
-    scrollbar-color: #334155 #0f172a; /* Cor da barra móvel e cor de fundo */
+    scrollbar-width: thin;
+    scrollbar-color: #334155 #0f172a; 
 }
