@@ -86,10 +86,10 @@ const Homepage = () => {
     ];
 
     return (
-        <div className="bg-slate-950 text-white font-inter min-h-screen">
+        <div className="bg-slate-950 text-white font-inter min-h-screen overflow-x-hidden">
             {/* Hero Section */}
             <div
-                className="relative min-h-screen overflow-x-hidden"
+                className="relative min-h-screen"
                 style={{ backgroundImage: `url(${Background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             >
                 <div className="absolute inset-0 z-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80"></div>
