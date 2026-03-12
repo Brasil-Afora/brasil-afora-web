@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded"
+    }
+  },
+  "extends": ["ultracite/biome/core", "ultracite/biome/react"]
+}
