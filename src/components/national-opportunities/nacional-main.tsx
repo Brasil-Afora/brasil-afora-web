@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import {
   FaCheck,
+  FaExclamationTriangle,
   FaFilter,
   FaSlidersH,
   FaTimes,
@@ -8,7 +9,7 @@ import {
   FaTrophy,
 } from "react-icons/fa"
 import useSessionStorage from "../../hooks/use-session-storage"
-import { oportunidadesNacionais } from "../../utils/opportunities-national"
+import { getNationalOpportunities } from "../../lib/opportunities-api"
 import NacionalFilter from "./nacional-filter"
 import NacionalList from "./nacional-list"
 import type { OpportunitiesFiltros, Opportunity } from "./types"
@@ -23,10 +24,18 @@ const initialFiltros: OpportunitiesFiltros = {
 
 const isAgeInRange = (faixaEtaria: string, age: number): boolean => {
   const numeros = faixaEtaria.match(/\d+/g)?.map(Number)
-  if (!numeros) return false
-  if (numeros.length === 2) return age >= numeros[0] && age <= numeros[1]
-  if (numeros.length === 1 && faixaEtaria.includes("+")) return age >= numeros[0]
-  if (numeros.length === 1) return age === numeros[0]
+  if (!numeros) {
+    return false
+  }
+  if (numeros.length === 2) {
+    return age >= numeros[0] && age <= numeros[1]
+  }
+  if (numeros.length === 1 && faixaEtaria.includes("+")) {
+    return age >= numeros[0]
+  }
+  if (numeros.length === 1) {
+    return age === numeros[0]
+  }
   return false
 }
 
@@ -56,9 +65,12 @@ const NacionalMain = () => {
     initialFiltros
   )
   const [filtrosTemporarios, setFiltrosTemporarios] = useState<OpportunitiesFiltros>(filtros)
+  const [oportunidades, setOportunidades] = useState<Opportunity[]>([])
   const [oportunidadesFiltradas, setOportunidadesFiltradas] = useState<Opportunity[]>(
-    oportunidadesNacionais as Opportunity[]
+    []
   )
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState("")
   const [showTitle, setShowTitle] = useState(false)
   const [showContent, setShowContent] = useState(false)
   const isInitialMount = useRef(true)
@@ -78,14 +90,31 @@ const NacionalMain = () => {
   }, [])
 
   useEffect(() => {
-    const dadosFiltrados = applyOpportunityFilters(oportunidadesNacionais as Opportunity[], filtros)
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        setErrorMessage("")
+        const data = await getNationalOpportunities()
+        setOportunidades(data as Opportunity[])
+      } catch {
+        setErrorMessage("Nao foi possivel carregar as oportunidades nacionais.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    void fetchData()
+  }, [])
+
+  useEffect(() => {
+    const dadosFiltrados = applyOpportunityFilters(oportunidades, filtros)
     setOportunidadesFiltradas(dadosFiltrados)
     if (isInitialMount.current) {
       isInitialMount.current = false
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" })
     }
-  }, [filtros])
+  }, [filtros, oportunidades])
 
   const handleRemoveFilter = (key: keyof OpportunitiesFiltros, valueToRemove: string) => {
     setFiltros((prev) => {
@@ -224,6 +253,17 @@ const NacionalMain = () => {
         <div
           className={`md:w-3/4 ${baseTransition} ${showContent ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"}`}
         >
+          {isLoading && (
+            <div className="mb-4 rounded-lg border border-amber-500/30 bg-slate-900 p-4 text-white">
+              Carregando oportunidades nacionais...
+            </div>
+          )}
+          {errorMessage && (
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-950/40 p-4 text-red-200">
+              <FaExclamationTriangle />
+              <span>{errorMessage}</span>
+            </div>
+          )}
           <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between">
             <p className="font-semibold text-lg text-white">
               {`Exibindo ${oportunidadesFiltradas.length} oportunidades`}

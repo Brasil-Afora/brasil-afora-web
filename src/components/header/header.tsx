@@ -8,6 +8,11 @@ const Header = () => {
   const navigate = useNavigate()
   const { data: session } = useSession()
   const isAuthenticated = !!session?.user
+  const firstName = session?.user.name?.trim().split(/\s+/)[0] ?? ""
+  const profileDisplayName = firstName || "Perfil"
+  const mobileAccountDisplayName = firstName || "Minha Conta"
+  const isAdmin =
+    ((session?.user as { role?: string } | undefined)?.role ?? "") === "admin"
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
@@ -76,6 +81,7 @@ const Header = () => {
     { to: "/oportunidades/internacionais", label: "Internacional", end: false },
     { to: "/oportunidades/nacionais", label: "Nacional", end: false },
     { to: "/mapa", label: "Mapa", end: false },
+    ...(isAdmin ? [{ to: "/admin", label: "Admin", end: false }] : []),
   ]
 
   return (
@@ -161,7 +167,7 @@ const Header = () => {
               <FaUserCircle size={24} />
             )}
             <span className="max-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
-              {isAuthenticated ? session.user.name : "Perfil"}
+              {isAuthenticated ? profileDisplayName : "Perfil"}
             </span>
           </button>
 
@@ -174,6 +180,15 @@ const Header = () => {
               >
                 Meu Perfil
               </Link>
+              {isAdmin && (
+                <Link
+                  className="block px-4 py-2 text-white transition-colors duration-300 hover:bg-slate-800"
+                  onClick={closeProfileMenu}
+                  to="/admin"
+                >
+                  Painel Admin
+                </Link>
+              )}
               <hr className="my-1 border-slate-950 border-t" />
               {isAuthenticated ? (
                 <>
@@ -263,7 +278,7 @@ const Header = () => {
                 <FaUserCircle className="text-amber-500" size={20} />
               )}
               <h3 className="font-bold text-amber-500 text-lg">
-                {isAuthenticated ? session.user.name : "Minha Conta"}
+                {isAuthenticated ? mobileAccountDisplayName : "Minha Conta"}
               </h3>
             </div>
             <ul className="space-y-2">
@@ -276,6 +291,17 @@ const Header = () => {
                   Meu Perfil
                 </Link>
               </li>
+              {isAdmin && (
+                <li>
+                  <Link
+                    className="block rounded-lg px-4 py-2 transition-colors hover:bg-slate-800"
+                    onClick={toggleMobileMenu}
+                    to="/admin"
+                  >
+                    Painel Admin
+                  </Link>
+                </li>
+              )}
               {isAuthenticated ? (
                 <li>
                   <button

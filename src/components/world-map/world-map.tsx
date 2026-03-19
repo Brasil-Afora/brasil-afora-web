@@ -1,5 +1,7 @@
-import { memo } from "react"
-import { CircleMarker, GeoJSON, MapContainer, Popup } from "react-leaflet"
+import type { Feature, GeoJsonProperties, Geometry } from "geojson"
+import type { Layer, PathOptions } from "leaflet"
+import { memo, useState } from "react"
+import { GeoJSON, MapContainer } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import "./WorldMap.css"
 import worldCountriesData from "../../utils/countries.geo.json"
@@ -12,88 +14,235 @@ interface InterchangeEntry {
 interface WorldMapProps {
   exchangeData: Record<string, InterchangeEntry>
   onMarkerClick: (data: InterchangeEntry) => void
+  selectedCountryCode?: string | null
 }
 
-const paisesCoordenadas: Record<string, [number, number]> = {
-  US: [39.8283, -98.5795],
-  CA: [56.1304, -106.3468],
-  GB: [55.3781, -3.436],
-  DE: [51.1657, 10.4515],
-  FR: [46.6033, 1.8883],
-  AU: [-25.2744, 133.7751],
-  JP: [36.2048, 138.2529],
-  KR: [35.9078, 127.7669],
-  CN: [35.8617, 104.1954],
-  NZ: [-40.9006, 174.886],
-  IE: [53.4129, -8.2439],
-  SE: [60.1282, 18.6435],
-  NO: [60.472, 8.4689],
-  CL: [-35.6751, -71.543],
-  AR: [-34.6037, -58.3816],
-  ES: [40.4637, -3.7492],
-  IT: [41.8719, 12.5674],
-  BR: [-14.235, -51.9253],
-  MX: [23.6345, -102.5528],
-  CH: [46.8182, 8.2275],
-  NL: [52.1326, 5.2913],
-  AT: [47.5162, 14.5501],
-  BE: [50.8503, 4.3517],
-  DK: [56.2639, 9.5018],
-  FI: [61.9241, 25.7482],
-  PT: [39.3999, -8.2245],
-  TH: [15.87, 100.9925],
-  MY: [4.2105, 101.9758],
-  SG: [1.3521, 103.8198],
-  TW: [23.6978, 120.9605],
-  VN: [14.0583, 108.2772],
-  ID: [-0.7893, 113.9213],
-  PH: [12.8797, 121.774],
-  TR: [38.9637, 35.2433],
-  GR: [39.0742, 21.8243],
-  EG: [26.8206, 30.8025],
-  SA: [23.8859, 45.0792],
-  AE: [23.4241, 53.8478],
-  ZA: [-30.5595, 22.9375],
-  CR: [9.7489, -83.7534],
-  JO: [30.5852, 36.2384],
-  BD: [23.685, 90.3563],
-  NP: [28.3949, 84.124],
-  PK: [30.3753, 69.3451],
-  KG: [41.2044, 74.7661],
-  UA: [48.3794, 31.1656],
-  PL: [51.9194, 19.1451],
-  CZ: [49.8175, 15.473],
-  HU: [47.1625, 19.5033],
-  RO: [45.9432, 24.9668],
-  RS: [44.0165, 21.0059],
-  ME: [42.7087, 19.3744],
-  XK: [42.6026, 20.903],
-  AL: [41.1533, 20.1683],
-  HK: [22.3, 114.17],
+type WorldCountryFeature = Feature<Geometry, GeoJsonProperties> & {
+  id?: string | number
 }
 
-const countryStyle = {
-  fillColor: "#1e293b",
-  fillOpacity: 0.8,
-  color: "#475569",
-  weight: 1,
+const countryNamesPtBr: Record<string, string> = {
+  Afghanistan: "Afeganistao",
+  Albania: "Albania",
+  Algeria: "Argelia",
+  Angola: "Angola",
+  Argentina: "Argentina",
+  Armenia: "Armenia",
+  Australia: "Australia",
+  Austria: "Austria",
+  Azerbaijan: "Azerbaijao",
+  Bangladesh: "Bangladesh",
+  Belgium: "Belgica",
+  Bolivia: "Bolivia",
+  Brazil: "Brasil",
+  Bulgaria: "Bulgaria",
+  Cambodia: "Camboja",
+  Cameroon: "Camaroes",
+  Canada: "Canada",
+  Chile: "Chile",
+  China: "China",
+  Colombia: "Colombia",
+  "Costa Rica": "Costa Rica",
+  Croatia: "Croacia",
+  Cuba: "Cuba",
+  Cyprus: "Chipre",
+  "Czech Republic": "Republica Tcheca",
+  Denmark: "Dinamarca",
+  Dominican: "Republica Dominicana",
+  Ecuador: "Equador",
+  Egypt: "Egito",
+  England: "Inglaterra",
+  Estonia: "Estonia",
+  Ethiopia: "Etiopia",
+  Finland: "Finlandia",
+  France: "Franca",
+  Georgia: "Georgia",
+  Germany: "Alemanha",
+  Greece: "Grecia",
+  Greenland: "Groenlandia",
+  Guatemala: "Guatemala",
+  Haiti: "Haiti",
+  Honduras: "Honduras",
+  Hungary: "Hungria",
+  Iceland: "Islandia",
+  India: "India",
+  Indonesia: "Indonesia",
+  Iran: "Ira",
+  Iraq: "Iraque",
+  Ireland: "Irlanda",
+  Israel: "Israel",
+  Italy: "Italia",
+  Jamaica: "Jamaica",
+  Japan: "Japao",
+  Jordan: "Jordania",
+  Kazakhstan: "Cazaquistao",
+  Kenya: "Quenia",
+  Kuwait: "Kuwait",
+  Lebanon: "Libano",
+  Libya: "Libia",
+  Madagascar: "Madagascar",
+  Malaysia: "Malasia",
+  Mali: "Mali",
+  Mexico: "Mexico",
+  Mongolia: "Mongolia",
+  Morocco: "Marrocos",
+  Mozambique: "Mocambique",
+  Myanmar: "Mianmar",
+  Namibia: "Namibia",
+  Nepal: "Nepal",
+  Netherlands: "Paises Baixos",
+  "New Zealand": "Nova Zelandia",
+  Nicaragua: "Nicaragua",
+  Nigeria: "Nigeria",
+  Norway: "Noruega",
+  Oman: "Oma",
+  Pakistan: "Paquistao",
+  Panama: "Panama",
+  Paraguay: "Paraguai",
+  Peru: "Peru",
+  Philippines: "Filipinas",
+  Poland: "Polonia",
+  Portugal: "Portugal",
+  Qatar: "Catar",
+  Romania: "Romenia",
+  Russia: "Russia",
+  "Saudi Arabia": "Arabia Saudita",
+  Senegal: "Senegal",
+  Serbia: "Servia",
+  Singapore: "Singapura",
+  Slovakia: "Eslovaquia",
+  Slovenia: "Eslovenia",
+  Somalia: "Somalia",
+  "South Africa": "Africa do Sul",
+  "South Korea": "Coreia do Sul",
+  Spain: "Espanha",
+  Sweden: "Suecia",
+  Switzerland: "Suica",
+  Syria: "Siria",
+  Taiwan: "Taiwan",
+  Thailand: "Tailandia",
+  Tunisia: "Tunisia",
+  Turkey: "Turquia",
+  Ukraine: "Ucrania",
+  "United Arab Emirates": "Emirados Arabes Unidos",
+  "United Kingdom": "Reino Unido",
+  "United States of America": "Estados Unidos",
+  Uruguay: "Uruguai",
+  Venezuela: "Venezuela",
+  Vietnam: "Vietna",
 }
 
-const circleMarkerStyle = {
-  color: "#facc15",
-  fillColor: "#facc15",
-  fillOpacity: 0.7,
-  radius: 3,
-}
+const WorldMap = ({
+  exchangeData,
+  onMarkerClick,
+  selectedCountryCode = null,
+}: WorldMapProps) => {
+  const geoJsonLayerKey = Object.keys(exchangeData)
+    .sort()
+    .join("|")
 
-const WorldMap = ({ exchangeData, onMarkerClick }: WorldMapProps) => {
-  const markerPositions = Object.keys(exchangeData)
-    .filter((code) => Object.hasOwn(paisesCoordenadas, code))
-    .map((code) => ({
-      code,
-      position: paisesCoordenadas[code],
-      data: exchangeData[code],
-    }))
+  const [hoveredCountryCode, setHoveredCountryCode] = useState<string | null>(
+    null
+  )
+
+  const getCountryCode = (feature?: WorldCountryFeature): string => {
+    if (!feature?.id) {
+      return ""
+    }
+
+    return String(feature.id)
+  }
+
+  const getCountryName = (feature?: WorldCountryFeature): string => {
+    const countryCode = getCountryCode(feature)
+    const countryFromData = exchangeData[countryCode]?.nome
+    if (countryFromData) {
+      return countryFromData
+    }
+
+    const rawName = feature?.properties?.name
+    if (typeof rawName !== "string") {
+      return "Pais"
+    }
+
+    return countryNamesPtBr[rawName] ?? rawName
+  }
+
+  const getCountryStyle = (feature?: WorldCountryFeature): PathOptions => {
+    const countryCode = getCountryCode(feature)
+    const hasOpportunity = Boolean(exchangeData[countryCode])
+    const isHovered = countryCode !== "" && hoveredCountryCode === countryCode
+    const isSelected =
+      countryCode !== "" && selectedCountryCode !== null && selectedCountryCode === countryCode
+
+    if (isSelected) {
+      return {
+        fillColor: "#f59e0b",
+        fillOpacity: 0.78,
+        color: "#fef3c7",
+        weight: 2.2,
+      }
+    }
+
+    if (hasOpportunity) {
+      return {
+        fillColor: isHovered ? "#f59e0b" : "#facc15",
+        fillOpacity: isHovered ? 0.65 : 0.45,
+        color: isHovered ? "#fde68a" : "#f59e0b",
+        weight: isHovered ? 1.6 : 1.1,
+      }
+    }
+
+    return {
+      fillColor: isHovered ? "#334155" : "#1e293b",
+      fillOpacity: isHovered ? 0.9 : 0.8,
+      color: isHovered ? "#94a3b8" : "#475569",
+      weight: isHovered ? 1.25 : 1,
+    }
+  }
+
+  const onEachCountry = (feature: WorldCountryFeature, layer: Layer) => {
+    const countryCode = getCountryCode(feature)
+    const countryName = getCountryName(feature)
+    const hasOpportunity = Boolean(exchangeData[countryCode])
+
+    layer.bindTooltip(countryName, {
+      className: "country-tooltip",
+      direction: "top",
+      opacity: 0.95,
+      sticky: true,
+    })
+
+    layer.on({
+      mouseout: () => {
+        setHoveredCountryCode((current) =>
+          current === countryCode ? null : current
+        )
+        const path = layer as Layer & { _path?: SVGPathElement }
+        if (path._path) {
+          path._path.style.cursor = ""
+        }
+      },
+      mouseover: () => {
+        setHoveredCountryCode(countryCode)
+        const path = layer as Layer & { _path?: SVGPathElement }
+        if (path._path) {
+          path._path.style.cursor = hasOpportunity ? "pointer" : "default"
+        }
+      },
+    })
+
+    if (hasOpportunity) {
+      layer.on({
+        click: () => {
+          const countryData = exchangeData[countryCode]
+          if (countryData) {
+            onMarkerClick(countryData)
+          }
+        },
+      })
+    }
+  }
 
   return (
     <MapContainer
@@ -115,21 +264,12 @@ const WorldMap = ({ exchangeData, onMarkerClick }: WorldMapProps) => {
       zoom={2}
       zoomControl={false}
     >
-      <GeoJSON data={worldCountriesData.features} style={countryStyle} />
-      {markerPositions.map(({ code, position, data }) => (
-        <CircleMarker
-          center={position}
-          eventHandlers={{ click: () => onMarkerClick(data) }}
-          key={code}
-          pathOptions={circleMarkerStyle}
-        >
-          <Popup className="custom-popup">
-            <div className="text-slate-900">
-              <h4 className="font-bold">{data?.nome}</h4>
-            </div>
-          </Popup>
-        </CircleMarker>
-      ))}
+      <GeoJSON
+        data={worldCountriesData.features}
+        key={geoJsonLayerKey}
+        onEachFeature={onEachCountry}
+        style={getCountryStyle}
+      />
     </MapContainer>
   )
 }

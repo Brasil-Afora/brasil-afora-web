@@ -20,8 +20,8 @@ import {
 } from "react-icons/fa"
 import { useNavigate, useParams } from "react-router-dom"
 import useLocalStorage from "../../hooks/use-local-storage"
-import { getTimeRemaining } from "../../lib/date-utils"
-import { oportunidadesInternacionais } from "../../utils/opportunities-international"
+import { getTimeRemaining, getTimeRemainingBadgeClass } from "../../lib/date-utils"
+import { getInternationalOpportunityById } from "../../lib/opportunities-api"
 import type { FavoriteOpportunity } from "../profile/types"
 import InternacionalConfirmationPopup from "./internacional-confirmation-popup"
 import type { Opportunity } from "./types"
@@ -49,9 +49,9 @@ const getScholarshipTagClasses = (tipoBolsa: string): string => {
 const InternacionalInfo = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const oportunidade = oportunidadesInternacionais.find(
-    (op: Opportunity) => op.id === Number(id)
-  ) as Opportunity | undefined
+  const [oportunidade, setOportunidade] = useState<Opportunity | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState("")
 
   const [favorites, setFavorites] = useLocalStorage<FavoriteOpportunity[]>(
     "favorites",
@@ -64,6 +64,7 @@ const InternacionalInfo = () => {
   const [confirmationOpportunity, setConfirmationOpportunity] =
     useState<Opportunity | null>(null)
   const [activeTab, setActiveTab] = useState<ActiveTab>("sobre")
+  const [heroImageFailed, setHeroImageFailed] = useState(false)
 
   const isFavorited = favorites.some(
     (fav) =>
@@ -76,6 +77,35 @@ const InternacionalInfo = () => {
   }, [])
 
   useEffect(() => {
+    const fetchOpportunity = async () => {
+      if (!id) {
+        setErrorMessage("Oportunidade nao encontrada.")
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setErrorMessage("")
+        const data = await getInternationalOpportunityById(id)
+        if (!data) {
+          setErrorMessage("Oportunidade nao encontrada.")
+          setOportunidade(null)
+          return
+        }
+
+        setOportunidade(data as Opportunity)
+      } catch {
+        setErrorMessage("Nao foi possivel carregar os detalhes da oportunidade.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    void fetchOpportunity()
+  }, [id])
+
+  useEffect(() => {
     if (popup.visible) {
       const timer = setTimeout(() => {
         setPopup((prev) => ({ ...prev, visible: false }))
@@ -83,6 +113,10 @@ const InternacionalInfo = () => {
       return () => clearTimeout(timer)
     }
   }, [popup.visible])
+
+  useEffect(() => {
+    setHeroImageFailed(false)
+  }, [oportunidade?.imagem])
 
   const handleFavoriteToggle = () => {
     if (!oportunidade) {
@@ -130,15 +164,24 @@ const InternacionalInfo = () => {
   }
 
   if (!oportunidade) {
+    if (isLoading) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+          <p className="text-xl">Carregando oportunidade...</p>
+        </div>
+      )
+    }
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-        <p className="text-xl">Oportunidade não encontrada.</p>
+        <p className="text-xl">{errorMessage || "Oportunidade nao encontrada."}</p>
       </div>
     )
   }
 
   const scholarshipClasses = getScholarshipTagClasses(oportunidade.tipoBolsa)
   const timeRemaining = getTimeRemaining(oportunidade.prazoInscricao)
+  const deadlineBadgeClass = getTimeRemainingBadgeClass(oportunidade.prazoInscricao)
 
   const tabs: { key: ActiveTab; label: string; icon: React.ReactNode }[] = [
     {
@@ -147,9 +190,9 @@ const InternacionalInfo = () => {
       icon: <FaInfoCircle className="mr-2 inline-block" />,
     },
     {
-      key: "requisitos",
-      label: "Requisitos",
-      icon: <FaFileAlt className="mr-2 inline-block" />,
+      key: "inscricao",
+      label: "Inscrição",
+      icon: <FaPaperclip className="mr-2 inline-block" />,
     },
     {
       key: "custos-bolsas",
@@ -157,9 +200,9 @@ const InternacionalInfo = () => {
       icon: <FaMoneyBillWave className="mr-2 inline-block" />,
     },
     {
-      key: "inscricao",
-      label: "Inscrição",
-      icon: <FaPaperclip className="mr-2 inline-block" />,
+      key: "requisitos",
+      label: "Requisitos",
+      icon: <FaFileAlt className="mr-2 inline-block" />,
     },
   ]
 
@@ -367,13 +410,19 @@ const InternacionalInfo = () => {
     <div className="relative min-h-screen bg-slate-950 font-inter text-white">
       <div className="relative h-96 overflow-hidden">
         <img
-          alt={`Imagem de Capa para ${oportunidade.nome}`}
+          alt="Imagem de capa padrão"
           className="absolute inset-0 h-full w-full object-cover"
-          height={384}
-          src={oportunidade.imagem}
-          width={1280}
+          src="/map.jpg"
         />
-        <div className="absolute inset-0 flex flex-col justify-end bg-black bg-opacity-70 p-8 pb-12 md:p-16 md:pb-24">
+        {!heroImageFailed && oportunidade.imagem && (
+          <img
+            alt={`Imagem de Capa para ${oportunidade.nome}`}
+            className="absolute inset-0 h-full w-full object-cover"
+            onError={() => setHeroImageFailed(true)}
+            src={oportunidade.imagem}
+          />
+        )}
+        <div className="absolute inset-0 flex flex-col justify-end bg-black/80 p-8 pb-12 md:p-16 md:pb-24">
           <div className="mb-2 flex items-center text-white">
             <FaGlobeAmericas className="mr-2" />
             <span className="font-light text-sm md:text-base">
@@ -383,6 +432,13 @@ const InternacionalInfo = () => {
           <h1 className="font-extrabold text-2xl text-white md:text-5xl">
             {oportunidade.nome}
           </h1>
+          {timeRemaining && (
+            <span
+              className={`mt-3 inline-flex w-fit rounded-full px-4 py-1 font-bold text-sm ${deadlineBadgeClass}`}
+            >
+              {timeRemaining}
+            </span>
+          )}
         </div>
       </div>
 
@@ -405,13 +461,8 @@ const InternacionalInfo = () => {
             </button>
           </div>
           <div className="flex w-full flex-col gap-4 md:w-auto md:flex-row md:items-center">
-            {timeRemaining && (
-              <span className="rounded-full bg-blue-500 px-4 py-1 font-bold text-white text-sm">
-                {timeRemaining}
-              </span>
-            )}
             <button
-              className={`flex items-center justify-center rounded-full px-6 py-2 font-bold transition-colors duration-200 ${isFavorited ? "bg-blue-500 text-white" : "bg-slate-950 text-white hover:bg-slate-800"}`}
+              className={`inline-flex h-11 min-w-[248px] items-center justify-center rounded-full px-6 py-2 font-bold transition-colors duration-200 ${isFavorited ? "bg-blue-500 text-white" : "bg-slate-950 text-white hover:bg-slate-800"}`}
               onClick={handleFavoriteToggle}
               type="button"
             >
@@ -421,7 +472,7 @@ const InternacionalInfo = () => {
               {isFavorited ? "Remover" : "Adicionar aos Favoritos"}
             </button>
             <a
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 px-6 py-2 font-bold text-white transition-colors duration-300 hover:bg-blue-600"
+              className="inline-flex h-11 min-w-[248px] items-center justify-center gap-2 rounded-full bg-blue-500 px-6 py-2 font-bold text-white transition-colors duration-300 hover:bg-blue-600"
               href={oportunidade.linkOficial || "#"}
               rel="noopener noreferrer"
               target="_blank"

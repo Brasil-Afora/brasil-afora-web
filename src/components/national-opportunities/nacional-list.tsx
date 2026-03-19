@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
-import { FaCalendarAlt, FaMapMarkerAlt } from "react-icons/fa"
+import { FaCalendarAlt, FaMapMarkerAlt, FaTag } from "react-icons/fa"
 import { Link } from "react-router-dom"
-import { getTimeRemaining } from "../../lib/date-utils"
+import { getTimeRemaining, getTimeRemainingBadgeClass } from "../../lib/date-utils"
 import type { Opportunity } from "./types"
 
 interface NacionalListProps {
@@ -35,6 +35,9 @@ const NacionalList = ({ data }: NacionalListProps) => {
         <div className="grid grid-cols-1 gap-8 font-inter sm:grid-cols-2 lg:grid-cols-3">
           {data.map((oportunidade, index) => {
             const timeRemaining = getTimeRemaining(oportunidade.prazoInscricao)
+            const deadlineBadgeClass = getTimeRemainingBadgeClass(
+              oportunidade.prazoInscricao
+            )
 
             return (
               <Link
@@ -42,12 +45,10 @@ const NacionalList = ({ data }: NacionalListProps) => {
                 key={oportunidade.id}
                 to={`/oportunidades/nacionais/${oportunidade.id}`}
               >
-                <div className="absolute top-4 left-4 z-10 rounded-full bg-slate-950 px-3 py-1 font-semibold text-white text-xs">
-                  {oportunidade.tipo}
-                </div>
-
                 {timeRemaining && (
-                  <div className="absolute top-4 right-4 z-10 rounded-full bg-amber-500 px-3 py-1 font-bold text-black text-xs">
+                  <div
+                    className={`absolute top-4 right-4 z-10 rounded-full px-3 py-1 font-bold text-xs ${deadlineBadgeClass}`}
+                  >
                     {timeRemaining}
                   </div>
                 )}
@@ -73,9 +74,6 @@ const NacionalList = ({ data }: NacionalListProps) => {
                   </div>
 
                   <div className="mb-3 flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-amber-500 px-2 py-1 font-semibold text-black text-xs">
-                      {oportunidade.tipo}
-                    </span>
                     {oportunidade.nivelEnsino && (
                       <span className="rounded-full bg-slate-950 px-2 py-1 font-semibold text-white text-xs">
                         {oportunidade.nivelEnsino}
@@ -87,6 +85,10 @@ const NacionalList = ({ data }: NacionalListProps) => {
                   </div>
 
                   <div className="flex grow flex-col justify-end text-white">
+                    <div className="mb-1 flex items-center space-x-2">
+                      <FaTag className="text-amber-500 text-sm" />
+                      <span className="text-sm">{oportunidade.tipo}</span>
+                    </div>
                     <div className="mb-1 flex items-center space-x-2">
                       <FaCalendarAlt className="text-amber-500 text-sm" />
                       <span className="text-sm">

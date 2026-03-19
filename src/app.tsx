@@ -5,6 +5,7 @@ import ResetPasswordPage from "./components/auth/reset-password-page"
 import SignInPage from "./components/auth/sign-in-page"
 import SignUpPage from "./components/auth/sign-up-page"
 import VerifyEmailPage from "./components/auth/verify-email-page"
+import AdminPage from "./components/admin/admin-page"
 import Header from "./components/header/header"
 import Homepage from "./components/homepage/homepage"
 import InternacionalMain from "./components/international-opportunities/internacional-main"
@@ -37,6 +38,14 @@ function App() {
                 <Route element={<NacionalMain />} path="/oportunidades/nacionais" />
                 <Route element={<NacionalInfo />} path="/oportunidades/nacionais/:id" />
                 <Route element={<WorldMapPage />} path="/mapa" />
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <AdminPage />
+                    </ProtectedRoute>
+                  }
+                  path="/admin"
+                />
                 <Route
                   element={
                     <ProtectedRoute>

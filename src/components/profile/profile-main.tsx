@@ -29,17 +29,26 @@ const ProfileMain = () => {
   useEffect(() => {
     setFavoriteOpportunities((prev) =>
       prev.map((fav) => {
+        const favoriteId = String(fav.id)
         if (fav.detalhePath && fav.categoria) {
-          return fav
+          return {
+            ...fav,
+            id: favoriteId,
+          }
         }
-        const categoria = fav.id <= 10 ? "nacional" : "internacional"
+
+        const categoria = fav.detalhePath?.includes("/nacionais/")
+          ? "nacional"
+          : "internacional"
+
         return {
           ...fav,
+          id: favoriteId,
           categoria,
           detalhePath:
             categoria === "nacional"
-              ? `/oportunidades/nacionais/${fav.id}`
-              : `/oportunidades/internacionais/${fav.id}`,
+              ? `/oportunidades/nacionais/${favoriteId}`
+              : `/oportunidades/internacionais/${favoriteId}`,
         }
       })
     )
@@ -82,7 +91,7 @@ const ProfileMain = () => {
           onClick={() => setActiveTab("favorites")}
           type="button"
         >
-          Intercâmbios Salvos
+          Oportunidades Salvas
         </button>
       </div>
 

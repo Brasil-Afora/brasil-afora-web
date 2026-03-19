@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
-import { FaCalendarAlt, FaClock, FaMapMarkerAlt } from "react-icons/fa"
+import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaTag } from "react-icons/fa"
 import { Link } from "react-router-dom"
-import { getTimeRemaining } from "../../lib/date-utils"
+import { getTimeRemaining, getTimeRemainingBadgeClass } from "../../lib/date-utils"
 import type { Opportunity } from "./types"
 
 interface InternacionalListProps {
@@ -48,6 +48,9 @@ const InternacionalList = ({ data }: InternacionalListProps) => {
         <div className="grid grid-cols-1 gap-8 font-inter sm:grid-cols-2 lg:grid-cols-3">
           {data.map((oportunidade, index) => {
             const timeRemaining = getTimeRemaining(oportunidade.prazoInscricao)
+            const deadlineBadgeClass = getTimeRemainingBadgeClass(
+              oportunidade.prazoInscricao
+            )
             const scholarshipClasses = getScholarshipTagClasses(
               oportunidade.tipoBolsa
             )
@@ -58,12 +61,10 @@ const InternacionalList = ({ data }: InternacionalListProps) => {
                 key={oportunidade.id}
                 to={`/oportunidades/internacionais/${oportunidade.id}`}
               >
-                <div className="absolute top-4 left-4 z-10 rounded-full bg-slate-950 px-3 py-1 font-semibold text-white text-xs">
-                  {oportunidade.tipo}
-                </div>
-
                 {timeRemaining && (
-                  <div className="absolute top-4 right-4 z-10 rounded-full bg-blue-500 px-3 py-1 font-bold text-white text-xs">
+                  <div
+                    className={`absolute top-4 right-4 z-10 rounded-full px-3 py-1 font-bold text-xs ${deadlineBadgeClass}`}
+                  >
                     {timeRemaining}
                   </div>
                 )}
@@ -101,6 +102,10 @@ const InternacionalList = ({ data }: InternacionalListProps) => {
                   </div>
 
                   <div className="flex grow flex-col justify-end text-white">
+                    <div className="mb-1 flex items-center space-x-2">
+                      <FaTag className="text-blue-400 text-sm" />
+                      <span className="text-sm">{oportunidade.tipo}</span>
+                    </div>
                     <div className="mb-1 flex items-center space-x-2">
                       <FaMapMarkerAlt className="text-blue-400 text-sm" />
                       <span className="text-sm">{oportunidade.pais}</span>

@@ -8,7 +8,7 @@ export interface Opportunity {
   duracao: string
   etapasSelecao: string
   faixaEtaria: string
-  id: number
+  id: string
   imagem: string
   instituicaoResponsavel: string
   linkOficial: string

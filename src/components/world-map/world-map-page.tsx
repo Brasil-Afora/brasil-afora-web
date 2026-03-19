@@ -3,18 +3,35 @@ import {
   FaArrowRight,
   FaCalendarAlt,
   FaClock,
+  FaExclamationTriangle,
   FaMapPin,
   FaTimes,
 } from "react-icons/fa"
 import { Link } from "react-router-dom"
 import useSessionStorage from "../../hooks/use-session-storage"
-import { oportunidadesInternacionais } from "../../utils/opportunities-international"
-import type { Opportunity } from "../international-opportunities/types"
+import {
+  getInternationalOpportunities,
+  getNationalOpportunities,
+  type InternationalOpportunity,
+  type NationalOpportunity,
+} from "../../lib/opportunities-api"
 import WorldMap from "./world-map"
+
+type OpportunitySource = "internacional" | "nacional"
+
+interface MapOpportunity {
+  duracao: string
+  id: string
+  nome: string
+  pais: string
+  prazoInscricao: string
+  source: OpportunitySource
+  tipo: string
+}
 
 interface CountryInterchange {
   duracao: string
-  id: number
+  id: string
   link: string
   nome: string
   prazoInscricao: string
@@ -28,41 +45,138 @@ interface CountryData {
   nome: string
 }
 
-const codigosPorPais: Record<string, string> = {
-  "Estados Unidos": "US",
-  Canadá: "CA",
-  "Reino Unido": "GB",
-  Alemanha: "DE",
-  França: "FR",
-  Espanha: "ES",
-  Itália: "IT",
-  Irlanda: "IE",
-  Austrália: "AU",
-  "Nova Zelândia": "NZ",
-  Japão: "JP",
-  "Coreia do Sul": "KR",
-  China: "CN",
-  Argentina: "AR",
-  Chile: "CL",
-  México: "MX",
-  Suíça: "CH",
-  Brasil: "BR",
-  Europa: "EU",
-  Dinamarca: "DK",
-  Suécia: "SE",
-  "Países Baixos": "NL",
-  Áustria: "AT",
-  Tailândia: "TH",
-  Singapura: "SG",
-  Noruega: "NO",
-  "Hong Kong": "HK",
-  Diversos: "BR",
+const normalizeCountryName = (value: string): string =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+
+const countryToIso3: Record<string, string> = {
+  alemanha: "DEU",
+  argentina: "ARG",
+  arabia: "SAU",
+  "arabia saudita": "SAU",
+  australia: "AUS",
+  austria: "AUT",
+  belgica: "BEL",
+  brasil: "BRA",
+  canada: "CAN",
+  chile: "CHL",
+  china: "CHN",
+  "coreia do sul": "KOR",
+  coreia: "KOR",
+  dinamarca: "DNK",
+  egito: "EGY",
+  emirados: "ARE",
+  "emirados arabes unidos": "ARE",
+  espanha: "ESP",
+  "estados unidos": "USA",
+  "estados unidos da america": "USA",
+  france: "FRA",
+  franca: "FRA",
+  "hong kong": "HKG",
+  hungria: "HUN",
+  india: "IND",
+  indonesia: "IDN",
+  inglaterra: "GBR",
+  ireland: "IRL",
+  irlanda: "IRL",
+  italia: "ITA",
+  japao: "JPN",
+  jordania: "JOR",
+  malta: "MLT",
+  malasia: "MYS",
+  mexico: "MEX",
+  norway: "NOR",
+  noruega: "NOR",
+  "nova zelandia": "NZL",
+  oma: "OMN",
+  "paises baixos": "NLD",
+  peru: "PER",
+  polonia: "POL",
+  portugal: "PRT",
+  qatar: "QAT",
+  catar: "QAT",
+  "reino unido": "GBR",
+  romenia: "ROU",
+  russia: "RUS",
+  singapura: "SGP",
+  suecia: "SWE",
+  suica: "CHE",
+  tailandia: "THA",
+  tchequia: "CZE",
+  "republica tcheca": "CZE",
+  turquia: "TUR",
+  ucrania: "UKR",
+  vietnam: "VNM",
+  "coreia, republic of": "KOR",
+  "korea, republic of": "KOR",
+  "new zealand": "NZL",
+  netherlands: "NLD",
+  switzerland: "CHE",
+  spain: "ESP",
+  germany: "DEU",
+  italy: "ITA",
+  japan: "JPN",
+  "south korea": "KOR",
+  "south africa": "ZAF",
+  sweden: "SWE",
+  denmark: "DNK",
+  "united kingdom": "GBR",
+  "united states": "USA",
+  "united states of america": "USA",
 }
 
-const getCodigoPais = (nomePais: string): string | undefined =>
-  codigosPorPais[nomePais]
+const getCodigoPais = (nomePais: string): string | undefined => {
+  const normalized = normalizeCountryName(nomePais)
+  const directMatch = countryToIso3[normalized]
 
-const agruparOportunidadesPorPais = (dados: Opportunity[]): CountryData[] => {
+  if (directMatch) {
+    return directMatch
+  }
+
+  const normalizedWithoutExtraInfo = normalized.split(",")[0]?.trim() ?? normalized
+  const secondaryMatch = countryToIso3[normalizedWithoutExtraInfo]
+  if (secondaryMatch) {
+    return secondaryMatch
+  }
+
+  if (normalized.includes("united states")) {
+    return "USA"
+  }
+  if (normalized.includes("united kingdom") || normalized.includes("england")) {
+    return "GBR"
+  }
+  if (normalized.includes("korea")) {
+    return "KOR"
+  }
+
+  return undefined
+}
+
+const toMapOpportunity = (
+  opportunity: InternationalOpportunity | NationalOpportunity,
+  source: OpportunitySource
+): MapOpportunity => ({
+  id: opportunity.id,
+  nome: opportunity.nome,
+  tipo: opportunity.tipo,
+  duracao: opportunity.duracao,
+  prazoInscricao: opportunity.prazoInscricao,
+  pais: opportunity.pais,
+  source,
+})
+
+const getOpportunityLink = (opportunity: MapOpportunity): string => {
+  if (opportunity.source === "nacional") {
+    return `/oportunidades/nacionais/${opportunity.id}`
+  }
+
+  return `/oportunidades/internacionais/${opportunity.id}`
+}
+
+const agruparOportunidadesPorPais = (dados: MapOpportunity[]): CountryData[] => {
   const agrupado: Record<string, CountryData> = {}
   for (const oportunidade of dados) {
     const codigo = getCodigoPais(oportunidade.pais)
@@ -82,7 +196,7 @@ const agruparOportunidadesPorPais = (dados: Opportunity[]): CountryData[] => {
         tipo: oportunidade.tipo,
         duracao: oportunidade.duracao,
         prazoInscricao: oportunidade.prazoInscricao,
-        link: `/oportunidades/internacionais/${oportunidade.id}`,
+        link: getOpportunityLink(oportunidade),
       })
     }
   }
@@ -90,30 +204,60 @@ const agruparOportunidadesPorPais = (dados: Opportunity[]): CountryData[] => {
 }
 
 const WorldMapPage = () => {
+  const [oportunidades, setOportunidades] = useState<MapOpportunity[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState("")
   const [clickedCountryData, setClickedCountryData] =
     useSessionStorage<CountryData | null>("mapClickedCountry", null)
 
-  const listaDePaisesComOportunidades = useMemo(
-    () => agruparOportunidadesPorPais(oportunidadesInternacionais as Opportunity[]),
-    []
-  )
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        setErrorMessage("")
+        const [internationalData, nationalData] = await Promise.all([
+          getInternationalOpportunities(),
+          getNationalOpportunities(),
+        ])
 
-  const oportunidadesPorCodigo = useMemo(() => {
-    const agrupado: Record<
-      string,
-      { nome: string; intercambios: Opportunity[] }
-    > = {}
-    for (const op of oportunidadesInternacionais as Opportunity[]) {
-      const codigo = getCodigoPais(op.pais)
-      if (codigo) {
-        if (!agrupado[codigo]) {
-          agrupado[codigo] = { nome: op.pais, intercambios: [] }
-        }
-        agrupado[codigo].intercambios.push(op)
+        const mergedData: MapOpportunity[] = [
+          ...internationalData.map((item) => toMapOpportunity(item, "internacional")),
+          ...nationalData.map((item) => toMapOpportunity(item, "nacional")),
+        ]
+
+        setOportunidades(mergedData)
+      } catch {
+        setErrorMessage("Nao foi possivel carregar os dados do mapa.")
+      } finally {
+        setIsLoading(false)
       }
     }
-    return agrupado
+
+    void fetchData()
   }, [])
+
+  const listaDePaisesComOportunidades = useMemo(
+    () => agruparOportunidadesPorPais(oportunidades),
+    [oportunidades]
+  )
+
+  const oportunidadesPorPaisNoGeoJson = useMemo(() => {
+    const agrupado: Record<string, CountryData> = {}
+
+    for (const countryData of listaDePaisesComOportunidades) {
+      agrupado[countryData.codigo] = countryData
+    }
+
+    return agrupado
+  }, [listaDePaisesComOportunidades])
+
+  const selectedCountryCodeIso3 = useMemo(() => {
+    if (!clickedCountryData?.codigo) {
+      return null
+    }
+
+    return clickedCountryData.codigo
+  }, [clickedCountryData])
 
   const [showMap, setShowMap] = useState(false)
   const [showSidebar, setShowSidebar] = useState(false)
@@ -136,8 +280,9 @@ const WorldMapPage = () => {
         className={`relative flex w-full items-center justify-center md:h-full md:basis-3/4 ${baseTransition} ${showMap ? "translate-x-0 opacity-100" : "-translate-x-10 opacity-0"} ${clickedCountryData && isMobileView ? "z-10 h-0 opacity-0" : "z-10 flex-1 opacity-100 md:h-full"}`}
       >
         <WorldMap
-          exchangeData={oportunidadesPorCodigo}
+          exchangeData={oportunidadesPorPaisNoGeoJson}
           onMarkerClick={(data) => setClickedCountryData(data as CountryData)}
+          selectedCountryCode={selectedCountryCodeIso3}
         />
       </div>
 
@@ -159,6 +304,15 @@ const WorldMapPage = () => {
           <h2 className="mb-4 border-slate-950 border-b pb-2 font-bold text-amber-500 text-xl">
             Oportunidades de Intercâmbio
           </h2>
+          {isLoading && (
+            <p className="text-sm text-white">Carregando dados do mapa...</p>
+          )}
+          {errorMessage && (
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-950/40 p-2 text-red-200 text-sm">
+              <FaExclamationTriangle />
+              <span>{errorMessage}</span>
+            </div>
+          )}
         </div>
 
         <div
@@ -203,7 +357,7 @@ const WorldMapPage = () => {
                     <div className="flex justify-end">
                       <Link
                         className="flex items-center font-semibold text-amber-500"
-                        to={`/oportunidades/internacionais/${oportunidade.id}`}
+                        to={oportunidade.link}
                       >
                         Saiba Mais <FaArrowRight className="ml-2" />
                       </Link>

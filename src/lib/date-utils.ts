@@ -1,4 +1,4 @@
-export function getTimeRemaining(deadlineString: string): string | null {
+export function getDaysRemaining(deadlineString: string): number | null {
   if (typeof deadlineString !== "string" || deadlineString.length < 10) {
     return null
   }
@@ -21,7 +21,14 @@ export function getTimeRemaining(deadlineString: string): string | null {
   today.setHours(0, 0, 0, 0)
 
   const timeDiff = deadline.getTime() - today.getTime()
-  const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24))
+  return Math.ceil(timeDiff / (1000 * 3600 * 24))
+}
+
+export function getTimeRemaining(deadlineString: string): string | null {
+  const daysRemaining = getDaysRemaining(deadlineString)
+  if (daysRemaining === null) {
+    return null
+  }
 
   if (daysRemaining > 0) {
     return `Faltam ${daysRemaining} dias`
@@ -30,4 +37,26 @@ export function getTimeRemaining(deadlineString: string): string | null {
     return "Termina hoje"
   }
   return "Prazo encerrado"
+}
+
+export function getTimeRemainingBadgeClass(deadlineString: string): string {
+  const daysRemaining = getDaysRemaining(deadlineString)
+
+  if (daysRemaining === null) {
+    return "bg-slate-700 text-white"
+  }
+
+  if (daysRemaining <= 5) {
+    return "bg-red-500 text-white"
+  }
+
+  if (daysRemaining <= 20) {
+    return "bg-orange-500 text-black"
+  }
+
+  if (daysRemaining <= 30) {
+    return "bg-yellow-400 text-black"
+  }
+
+  return "bg-emerald-500 text-black"
 }

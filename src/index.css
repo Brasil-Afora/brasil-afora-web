@@ -2,11 +2,9 @@
 
 @theme {
   --font-inter: "Inter", var(--default-font-family);
-  --background-image-dark-gradient: linear-gradient(
-    to bottom,
-    #000000,
-    #040923ff
-  );
+  --background-image-dark-gradient: linear-gradient(to bottom,
+      #000000,
+      #040923ff);
 }
 
 .scrollbar-hide {
@@ -16,4 +14,22 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+a[href],
+button:not(:disabled),
+input[type="button"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="reset"]:not(:disabled),
+select:not(:disabled),
+summary,
+label[for],
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
 }
