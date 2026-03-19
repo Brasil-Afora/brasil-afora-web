@@ -46,15 +46,15 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
 
             <div className="mt-8 grid grid-cols-3 gap-6 text-center">
               <div className="flex flex-col items-center space-y-2">
-                <FaGraduationCap className="text-amber-500 text-2xl" />
+                <FaGraduationCap className="text-2xl text-amber-500" />
                 <p className="text-slate-300 text-sm">Curadoria Real</p>
               </div>
               <div className="flex flex-col items-center space-y-2">
-                <FaGlobeAmericas className="text-amber-500 text-2xl" />
+                <FaGlobeAmericas className="text-2xl text-amber-500" />
                 <p className="text-slate-300 text-sm">Nacional & Global</p>
               </div>
               <div className="flex flex-col items-center space-y-2">
-                <FaLockOpen className="text-amber-500 text-2xl" />
+                <FaLockOpen className="text-2xl text-amber-500" />
                 <p className="text-slate-300 text-sm">Acesso Gratuito</p>
               </div>
             </div>

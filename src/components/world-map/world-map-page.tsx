@@ -94,7 +94,8 @@ const WorldMapPage = () => {
     useSessionStorage<CountryData | null>("mapClickedCountry", null)
 
   const listaDePaisesComOportunidades = useMemo(
-    () => agruparOportunidadesPorPais(oportunidadesInternacionais as Opportunity[]),
+    () =>
+      agruparOportunidadesPorPais(oportunidadesInternacionais as Opportunity[]),
     []
   )
 

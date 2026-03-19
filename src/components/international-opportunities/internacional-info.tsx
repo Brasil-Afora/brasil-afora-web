@@ -20,8 +20,8 @@ import {
 } from "react-icons/fa"
 import { useNavigate, useParams } from "react-router-dom"
 import useLocalStorage from "../../hooks/use-local-storage"
+import { apiFetch } from "../../lib/api"
 import { getTimeRemaining } from "../../lib/date-utils"
-import { oportunidadesInternacionais } from "../../utils/opportunities-international"
 import type { FavoriteOpportunity } from "../profile/types"
 import InternacionalConfirmationPopup from "./internacional-confirmation-popup"
 import type { Opportunity } from "./types"
@@ -49,9 +49,47 @@ const getScholarshipTagClasses = (tipoBolsa: string): string => {
 const InternacionalInfo = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const oportunidade = oportunidadesInternacionais.find(
-    (op: Opportunity) => op.id === Number(id)
-  ) as Opportunity | undefined
+  const [oportunidade, setOportunidade] = useState<Opportunity | undefined>(
+    undefined
+  )
+  const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!id) {
+      return
+    }
+    let cancelled = false
+
+    const fetchData = async () => {
+      try {
+        const result = await apiFetch<Opportunity>(
+          `/oportunidades/internacionais/${id}`
+        )
+        if (!cancelled) {
+          setOportunidade(result)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setFetchError(
+            err instanceof Error
+              ? err.message
+              : "Erro ao carregar oportunidade."
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   const [favorites, setFavorites] = useLocalStorage<FavoriteOpportunity[]>(
     "favorites",
@@ -129,10 +167,20 @@ const InternacionalInfo = () => {
     setConfirmationOpportunity(null)
   }
 
-  if (!oportunidade) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-        <p className="text-xl">Oportunidade não encontrada.</p>
+        <p className="text-white/60 text-xl">Carregando oportunidade...</p>
+      </div>
+    )
+  }
+
+  if (fetchError || !oportunidade) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+        <p className="text-xl">
+          {fetchError ?? "Oportunidade não encontrada."}
+        </p>
       </div>
     )
   }
@@ -406,7 +454,7 @@ const InternacionalInfo = () => {
           </div>
           <div className="flex w-full flex-col gap-4 md:w-auto md:flex-row md:items-center">
             {timeRemaining && (
-              <span className="rounded-full bg-blue-500 px-4 py-1 font-bold text-white text-sm">
+              <span className="rounded-full bg-blue-500 px-4 py-1 font-bold text-sm text-white">
                 {timeRemaining}
               </span>
             )}
