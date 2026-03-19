@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react"
 import {
   FaCalendarAlt,
-  FaCheck,
   FaChevronLeft,
   FaClipboardList,
-  FaClock,
+  FaDesktop,
   FaDollarSign,
   FaExternalLinkAlt,
   FaFileAlt,
-  FaGlobeAmericas,
   FaGraduationCap,
   FaHeart,
   FaInfoCircle,
@@ -21,8 +19,9 @@ import {
 import { useNavigate, useParams } from "react-router-dom"
 import useLocalStorage from "../../hooks/use-local-storage"
 import { getTimeRemaining } from "../../lib/date-utils"
-import { oportunidadesInternacionais as oportunidadesOriginais } from "../../utils/opportunities-international"
-import OpportunityConfirmationPopup from "./opportunity-confirmation-popup"
+import { oportunidadesNacionais } from "../../utils/opportunities-national"
+import type { FavoriteOpportunity } from "../profile/types"
+import NacionalConfirmationPopup from "./nacional-confirmation-popup"
 import type { Opportunity } from "./types"
 
 type ActiveTab = "sobre" | "requisitos" | "custos-bolsas" | "inscricao"
@@ -32,27 +31,14 @@ interface PopupState {
   visible: boolean
 }
 
-const getScholarshipTagClasses = (tipoBolsa: string): string => {
-  switch (tipoBolsa?.toLowerCase()) {
-    case "parcial":
-      return "bg-amber-500 text-black"
-    case "completa":
-      return "bg-green-500 text-black"
-    case "sem bolsa":
-      return "bg-gray-500 text-black"
-    default:
-      return "bg-slate-900 text-white"
-  }
-}
-
-const OpportunitiesInfo = () => {
+const NacionalInfo = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const oportunidade = oportunidadesOriginais.find(
+  const oportunidade = oportunidadesNacionais.find(
     (op: Opportunity) => op.id === Number(id)
   ) as Opportunity | undefined
 
-  const [favorites, setFavorites] = useLocalStorage<Opportunity[]>(
+  const [favorites, setFavorites] = useLocalStorage<FavoriteOpportunity[]>(
     "favorites",
     []
   )
@@ -65,7 +51,9 @@ const OpportunitiesInfo = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("sobre")
 
   const isFavorited = favorites.some(
-    (fav) => fav.id === (oportunidade ? oportunidade.id : null)
+    (fav) =>
+      fav.categoria === "nacional" &&
+      fav.id === (oportunidade ? oportunidade.id : null)
   )
 
   useEffect(() => {
@@ -88,7 +76,18 @@ const OpportunitiesInfo = () => {
     if (isFavorited) {
       setConfirmationOpportunity(oportunidade)
     } else {
-      setFavorites([...favorites, oportunidade])
+      setFavorites([
+        ...favorites,
+        {
+          id: oportunidade.id,
+          nome: oportunidade.nome,
+          imagem: oportunidade.imagem,
+          pais: oportunidade.pais,
+          prazoInscricao: oportunidade.prazoInscricao,
+          categoria: "nacional",
+          detalhePath: `/oportunidades/nacionais/${oportunidade.id}`,
+        },
+      ])
       setPopup({
         visible: true,
         message: "Oportunidade adicionada aos seus Favoritos!",
@@ -99,7 +98,10 @@ const OpportunitiesInfo = () => {
   const handleConfirmRemove = () => {
     if (confirmationOpportunity) {
       setFavorites(
-        favorites.filter((fav) => fav.id !== confirmationOpportunity.id)
+        favorites.filter(
+          (fav) =>
+            !(fav.categoria === "nacional" && fav.id === confirmationOpportunity.id)
+        )
       )
       setPopup({
         visible: true,
@@ -117,7 +119,6 @@ const OpportunitiesInfo = () => {
     )
   }
 
-  const scholarshipClasses = getScholarshipTagClasses(oportunidade.tipoBolsa)
   const timeRemaining = getTimeRemaining(oportunidade.prazoInscricao)
 
   const tabs: { key: ActiveTab; label: string; icon: React.ReactNode }[] = [
@@ -149,22 +150,20 @@ const OpportunitiesInfo = () => {
         return (
           <div className="rounded-lg border border-slate-950 bg-slate-900 p-8 shadow-xl">
             <h2 className="mb-4 font-bold text-2xl text-amber-500">
-              Sobre o Programa
+              Sobre
             </h2>
             <p className="mb-6 text-base text-white leading-relaxed">
-              {oportunidade.descricao || "N/A"}
+              {oportunidade.sobre || "N/A"}
+            </p>
+            <p className="mb-6 text-base text-white leading-relaxed">
+              {oportunidade.descricaoBreve || "N/A"}
             </p>
             <div className="grid grid-cols-1 gap-6 text-base md:grid-cols-2">
               {[
                 {
-                  icon: <FaGlobeAmericas />,
-                  label: "País de Destino",
-                  value: oportunidade.pais,
-                },
-                {
-                  icon: <FaMapMarkerAlt />,
-                  label: "Cidade",
-                  value: oportunidade.cidade,
+                  icon: <FaDesktop />,
+                  label: "Online/Presencial",
+                  value: oportunidade.modalidade,
                 },
                 {
                   icon: <FaGraduationCap />,
@@ -177,7 +176,12 @@ const OpportunitiesInfo = () => {
                   value: oportunidade.faixaEtaria,
                 },
                 {
-                  icon: <FaClock />,
+                  icon: <FaMapMarkerAlt />,
+                  label: "Cidade/Estado",
+                  value: oportunidade.cidadeEstado,
+                },
+                {
+                  icon: <FaInfoCircle />,
                   label: "Duração",
                   value: oportunidade.duracao,
                 },
@@ -197,34 +201,39 @@ const OpportunitiesInfo = () => {
         return (
           <div className="rounded-lg border border-slate-950 bg-slate-900 p-8 shadow-xl">
             <h2 className="mb-4 font-bold text-2xl text-amber-500">
-              Requisitos e Documentos
+              Requisitos
             </h2>
             <div className="grid grid-cols-1 gap-6 text-base md:grid-cols-2">
-              {[
-                {
-                  icon: <FaFileAlt className="mt-1" />,
-                  label: "Requisitos Específicos",
-                  value: oportunidade.requisitosEspecificos,
-                },
-                {
-                  icon: <FaGraduationCap className="mt-1" />,
-                  label: "Requisitos de Idioma",
-                  value: oportunidade.requisitosIdioma,
-                },
-                {
-                  icon: <FaClipboardList className="mt-1" />,
-                  label: "Instituição Responsável",
-                  value: oportunidade.instituicaoResponsavel,
-                },
-              ].map(({ icon, label, value }) => (
-                <div className="flex items-start space-x-3" key={label}>
-                  <span className="shrink-0 text-amber-500">{icon}</span>
-                  <div>
-                    <p className="font-semibold text-amber-500">{label}</p>
-                    <p className="text-white">{value || "N/A"}</p>
-                  </div>
+              <div className="flex items-start space-x-3">
+                <FaFileAlt className="mt-1 shrink-0 text-amber-500" />
+                <div>
+                  <p className="font-semibold text-amber-500">Requisitos</p>
+                  <p className="text-white">{oportunidade.requisitos || "N/A"}</p>
                 </div>
-              ))}
+              </div>
+              <div className="flex items-start space-x-3">
+                <FaClipboardList className="mt-1 shrink-0 text-amber-500" />
+                <div>
+                  <p className="font-semibold text-amber-500">Instituição Responsável</p>
+                  <p className="text-white">
+                    {oportunidade.instituicaoResponsavel || "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 rounded-lg border border-slate-950 bg-slate-950 p-4">
+              <p className="mb-2 font-semibold text-amber-500">
+                Requisitos Específicos
+              </p>
+              {oportunidade.requisitosEspecificos.length > 0 ? (
+                <ul className="list-disc space-y-1 pl-5 text-white">
+                  {oportunidade.requisitosEspecificos.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-white">N/A</p>
+              )}
             </div>
           </div>
         )
@@ -232,7 +241,7 @@ const OpportunitiesInfo = () => {
         return (
           <div className="rounded-lg border border-slate-950 bg-slate-900 p-8 shadow-xl">
             <h2 className="mb-4 font-bold text-2xl text-amber-500">
-              Custos e Bolsas
+              Benefícios e Custos
             </h2>
             <div className="grid grid-cols-1 gap-6 text-base md:grid-cols-2">
               <div className="flex items-start space-x-3">
@@ -247,25 +256,17 @@ const OpportunitiesInfo = () => {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <FaCheck className="mt-1 shrink-0 text-amber-500" />
+                <FaMoneyBillWave className="mt-1 shrink-0 text-amber-500" />
                 <div>
-                  <p className="font-semibold text-amber-500">Tipo de Bolsa</p>
-                  <span
-                    className={`rounded-full px-3 py-1 font-bold text-sm uppercase ${scholarshipClasses}`}
-                  >
-                    {oportunidade.tipoBolsa || "N/A"}
-                  </span>
+                  <p className="font-semibold text-amber-500">Benefícios</p>
+                  <p className="text-white">{oportunidade.beneficios || "N/A"}</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <FaMoneyBillWave className="mt-1 shrink-0 text-amber-500" />
+                <FaClipboardList className="mt-1 shrink-0 text-amber-500" />
                 <div>
-                  <p className="font-semibold text-amber-500">
-                    Cobertura da Bolsa
-                  </p>
-                  <p className="text-white">
-                    {oportunidade.coberturaBolsa || "N/A"}
-                  </p>
+                  <p className="font-semibold text-amber-500">Custos</p>
+                  <p className="text-white">{oportunidade.custos || "N/A"}</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
@@ -284,7 +285,7 @@ const OpportunitiesInfo = () => {
         return (
           <div className="rounded-lg border border-slate-950 bg-slate-900 p-8 shadow-xl">
             <h2 className="mb-4 font-bold text-2xl text-amber-500">
-              Processo de Inscrição
+              Inscrição
             </h2>
             <div className="grid grid-cols-1 gap-6 text-base md:grid-cols-2">
               {[
@@ -302,12 +303,6 @@ const OpportunitiesInfo = () => {
                 },
                 {
                   icon: <FaPaperclip className="mt-1" />,
-                  label: "Processo de Inscrição",
-                  value: oportunidade.processoInscricao,
-                  isLink: false,
-                },
-                {
-                  icon: <FaUser className="mt-1" />,
                   label: "Contato",
                   value: oportunidade.contato,
                   isLink: false,
@@ -350,16 +345,16 @@ const OpportunitiesInfo = () => {
           alt={`Imagem de Capa para ${oportunidade.nome}`}
           className="absolute inset-0 h-full w-full object-cover"
           height={384}
+          onError={(e) => {
+            e.currentTarget.src = "/home.png"
+          }}
           src={oportunidade.imagem}
           width={1280}
         />
         <div className="absolute inset-0 flex flex-col justify-end bg-black bg-opacity-70 p-8 pb-12 md:p-16 md:pb-24">
-          <div className="mb-2 flex items-center text-white">
-            <FaGlobeAmericas className="mr-2" />
-            <span className="font-light text-sm md:text-base">
-              {oportunidade.pais}
-            </span>
-          </div>
+          <span className="mb-2 inline-flex w-fit items-center rounded-full bg-amber-500 px-3 py-1 font-semibold text-black text-xs">
+            {oportunidade.tipo}
+          </span>
           <h1 className="font-extrabold text-2xl text-white md:text-5xl">
             {oportunidade.nome}
           </h1>
@@ -406,7 +401,7 @@ const OpportunitiesInfo = () => {
               rel="noopener noreferrer"
               target="_blank"
             >
-              Aplicar agora <FaExternalLinkAlt className="ml-2" />
+              Inscrever <FaExternalLinkAlt className="ml-2" />
             </a>
           </div>
         </div>
@@ -441,7 +436,7 @@ const OpportunitiesInfo = () => {
         </div>
       )}
 
-      <OpportunityConfirmationPopup
+      <NacionalConfirmationPopup
         onCancel={() => setConfirmationOpportunity(null)}
         onConfirm={handleConfirmRemove}
         opportunity={confirmationOpportunity}
@@ -450,4 +445,4 @@ const OpportunitiesInfo = () => {
   )
 }
 
-export default OpportunitiesInfo
+export default NacionalInfo

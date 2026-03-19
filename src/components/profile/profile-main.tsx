@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react"
 import useLocalStorage from "../../hooks/use-local-storage"
-import type { University } from "../college-list/types"
-import type { Opportunity } from "../opportunities/types"
-import ProfileCollegeList from "./profile-college-list"
 import ProfileConfirmationPopup from "./profile-confirmation-popup"
 import ProfileOpportunities from "./profile-opportunities"
+import type { FavoriteOpportunity } from "./types"
 
 interface PopupState {
   message: string
@@ -12,36 +10,40 @@ interface PopupState {
 }
 
 interface ConfirmationState {
-  id: number
-  listName: string
+  detalhePath: string
   name: string
 }
 
-interface ChecklistItem {
-  completed: boolean
-  text: string
-}
-type ApplicationChecklist = Record<number, ChecklistItem[]>
-
 const ProfileMain = () => {
-  const [myCollegeList, setMyCollegeList] = useLocalStorage<University[]>(
-    "myCollegeList",
-    []
-  )
   const [favoriteOpportunities, setFavoriteOpportunities] = useLocalStorage<
-    Opportunity[]
+    FavoriteOpportunity[]
   >("favorites", [])
-  const [applicationChecklist, setApplicationChecklist] =
-    useLocalStorage<ApplicationChecklist>("applicationChecklist", {})
-  const [activeTab, setActiveTab] = useState<"favorites" | "collegeList">(
-    "favorites"
-  )
+  const [activeTab, setActiveTab] = useState<"favorites">("favorites")
   const [confirmationPopup, setConfirmationPopup] =
     useState<ConfirmationState | null>(null)
   const [popup, setPopup] = useState<PopupState>({
     visible: false,
     message: "",
   })
+
+  useEffect(() => {
+    setFavoriteOpportunities((prev) =>
+      prev.map((fav) => {
+        if (fav.detalhePath && fav.categoria) {
+          return fav
+        }
+        const categoria = fav.id <= 10 ? "nacional" : "internacional"
+        return {
+          ...fav,
+          categoria,
+          detalhePath:
+            categoria === "nacional"
+              ? `/oportunidades/nacionais/${fav.id}`
+              : `/oportunidades/internacionais/${fav.id}`,
+        }
+      })
+    )
+  }, [setFavoriteOpportunities])
 
   useEffect(() => {
     if (popup.visible) {
@@ -52,27 +54,18 @@ const ProfileMain = () => {
     }
   }, [popup.visible])
 
-  const handleRemoveFromList = (id: number, listName: string, name: string) => {
-    setConfirmationPopup({ id, listName, name })
+  const handleRemoveFromList = (detalhePath: string, name: string) => {
+    setConfirmationPopup({ detalhePath, name })
   }
 
   const handleConfirmRemove = () => {
     if (!confirmationPopup) {
       return
     }
-    const { id, listName, name } = confirmationPopup
-    if (listName === "myCollegeList") {
-      setMyCollegeList(myCollegeList.filter((uni) => uni.id !== id))
-      setApplicationChecklist((prev) => {
-        const newChecklist = { ...prev }
-        delete newChecklist[id]
-        return newChecklist
-      })
-    } else if (listName === "favorites") {
-      setFavoriteOpportunities(
-        favoriteOpportunities.filter((fav) => fav.id !== id)
-      )
-    }
+    const { detalhePath, name } = confirmationPopup
+    setFavoriteOpportunities(
+      favoriteOpportunities.filter((fav) => fav.detalhePath !== detalhePath)
+    )
     setPopup({ visible: true, message: `"${name}" removido(a) com sucesso!` })
     setConfirmationPopup(null)
   }
@@ -91,26 +84,12 @@ const ProfileMain = () => {
         >
           Intercâmbios Salvos
         </button>
-        <button
-          className={`flex-1 rounded-full px-4 py-2 font-semibold text-sm transition-colors duration-200 ${activeTab === "collegeList" ? "bg-amber-500 text-black" : "text-white hover:bg-slate-800"}`}
-          onClick={() => setActiveTab("collegeList")}
-          type="button"
-        >
-          Minha College List
-        </button>
       </div>
 
-      {activeTab === "favorites" ? (
+      {activeTab === "favorites" && (
         <ProfileOpportunities
           favoriteOpportunities={favoriteOpportunities}
           handleRemoveFromList={handleRemoveFromList}
-        />
-      ) : (
-        <ProfileCollegeList
-          applicationChecklist={applicationChecklist}
-          handleRemoveFromList={handleRemoveFromList}
-          myCollegeList={myCollegeList}
-          setApplicationChecklist={setApplicationChecklist}
         />
       )}
 

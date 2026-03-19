@@ -5,12 +5,12 @@ import ResetPasswordPage from "./components/auth/reset-password-page"
 import SignInPage from "./components/auth/sign-in-page"
 import SignUpPage from "./components/auth/sign-up-page"
 import VerifyEmailPage from "./components/auth/verify-email-page"
-import CollegeListMain from "./components/college-list/college-list-main"
-import Dictionary from "./components/dictionary/dictionary"
 import Header from "./components/header/header"
 import Homepage from "./components/homepage/homepage"
-import OpportunitiesInfo from "./components/opportunities/opportunities-info"
-import OpportunitiesMain from "./components/opportunities/opportunities-main"
+import InternacionalMain from "./components/international-opportunities/internacional-main"
+import InternacionalInfo from "./components/international-opportunities/internacional-info"
+import NacionalMain from "./components/national-opportunities/nacional-main"
+import NacionalInfo from "./components/national-opportunities/nacional-info"
 import ProfileMain from "./components/profile/profile-main"
 import WorldMapPage from "./components/world-map/world-map-page"
 
@@ -32,13 +32,10 @@ function App() {
               <Header />
               <Routes>
                 <Route element={<Homepage />} path="/" />
-                <Route element={<OpportunitiesMain />} path="/oportunidades" />
-                <Route
-                  element={<OpportunitiesInfo />}
-                  path="/oportunidades/:id"
-                />
-                <Route element={<Dictionary />} path="/dicionario" />
-                <Route element={<CollegeListMain />} path="/college-list" />
+                <Route element={<InternacionalMain />} path="/oportunidades/internacionais" />
+                <Route element={<InternacionalInfo />} path="/oportunidades/internacionais/:id" />
+                <Route element={<NacionalMain />} path="/oportunidades/nacionais" />
+                <Route element={<NacionalInfo />} path="/oportunidades/nacionais/:id" />
                 <Route element={<WorldMapPage />} path="/mapa" />
                 <Route
                   element={

@@ -21,8 +21,9 @@ import {
 import { useNavigate, useParams } from "react-router-dom"
 import useLocalStorage from "../../hooks/use-local-storage"
 import { getTimeRemaining } from "../../lib/date-utils"
-import { oportunidadesInternacionais as oportunidadesOriginais } from "../../utils/opportunities-international"
-import OpportunityConfirmationPopup from "./opportunity-confirmation-popup"
+import { oportunidadesInternacionais } from "../../utils/opportunities-international"
+import type { FavoriteOpportunity } from "../profile/types"
+import InternacionalConfirmationPopup from "./internacional-confirmation-popup"
 import type { Opportunity } from "./types"
 
 type ActiveTab = "sobre" | "requisitos" | "custos-bolsas" | "inscricao"
@@ -45,14 +46,14 @@ const getScholarshipTagClasses = (tipoBolsa: string): string => {
   }
 }
 
-const OpportunitiesInfo = () => {
+const InternacionalInfo = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const oportunidade = oportunidadesOriginais.find(
+  const oportunidade = oportunidadesInternacionais.find(
     (op: Opportunity) => op.id === Number(id)
   ) as Opportunity | undefined
 
-  const [favorites, setFavorites] = useLocalStorage<Opportunity[]>(
+  const [favorites, setFavorites] = useLocalStorage<FavoriteOpportunity[]>(
     "favorites",
     []
   )
@@ -65,7 +66,9 @@ const OpportunitiesInfo = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("sobre")
 
   const isFavorited = favorites.some(
-    (fav) => fav.id === (oportunidade ? oportunidade.id : null)
+    (fav) =>
+      fav.categoria === "internacional" &&
+      fav.id === (oportunidade ? oportunidade.id : null)
   )
 
   useEffect(() => {
@@ -88,7 +91,18 @@ const OpportunitiesInfo = () => {
     if (isFavorited) {
       setConfirmationOpportunity(oportunidade)
     } else {
-      setFavorites([...favorites, oportunidade])
+      setFavorites([
+        ...favorites,
+        {
+          id: oportunidade.id,
+          nome: oportunidade.nome,
+          imagem: oportunidade.imagem,
+          pais: oportunidade.pais,
+          prazoInscricao: oportunidade.prazoInscricao,
+          categoria: "internacional",
+          detalhePath: `/oportunidades/internacionais/${oportunidade.id}`,
+        },
+      ])
       setPopup({
         visible: true,
         message: "Oportunidade adicionada aos seus Favoritos!",
@@ -99,7 +113,13 @@ const OpportunitiesInfo = () => {
   const handleConfirmRemove = () => {
     if (confirmationOpportunity) {
       setFavorites(
-        favorites.filter((fav) => fav.id !== confirmationOpportunity.id)
+        favorites.filter(
+          (fav) =>
+            !(
+              fav.categoria === "internacional" &&
+              fav.id === confirmationOpportunity.id
+            )
+        )
       )
       setPopup({
         visible: true,
@@ -148,7 +168,7 @@ const OpportunitiesInfo = () => {
       case "sobre":
         return (
           <div className="rounded-lg border border-slate-950 bg-slate-900 p-8 shadow-xl">
-            <h2 className="mb-4 font-bold text-2xl text-amber-500">
+            <h2 className="mb-4 font-bold text-2xl text-blue-400">
               Sobre o Programa
             </h2>
             <p className="mb-6 text-base text-white leading-relaxed">
@@ -183,9 +203,9 @@ const OpportunitiesInfo = () => {
                 },
               ].map(({ icon, label, value }) => (
                 <div className="flex items-center space-x-3" key={label}>
-                  <span className="shrink-0 text-amber-500">{icon}</span>
+                  <span className="shrink-0 text-blue-400">{icon}</span>
                   <div>
-                    <p className="font-semibold text-amber-500">{label}</p>
+                    <p className="font-semibold text-blue-400">{label}</p>
                     <p className="text-white">{value || "N/A"}</p>
                   </div>
                 </div>
@@ -196,7 +216,7 @@ const OpportunitiesInfo = () => {
       case "requisitos":
         return (
           <div className="rounded-lg border border-slate-950 bg-slate-900 p-8 shadow-xl">
-            <h2 className="mb-4 font-bold text-2xl text-amber-500">
+            <h2 className="mb-4 font-bold text-2xl text-blue-400">
               Requisitos e Documentos
             </h2>
             <div className="grid grid-cols-1 gap-6 text-base md:grid-cols-2">
@@ -218,9 +238,9 @@ const OpportunitiesInfo = () => {
                 },
               ].map(({ icon, label, value }) => (
                 <div className="flex items-start space-x-3" key={label}>
-                  <span className="shrink-0 text-amber-500">{icon}</span>
+                  <span className="shrink-0 text-blue-400">{icon}</span>
                   <div>
-                    <p className="font-semibold text-amber-500">{label}</p>
+                    <p className="font-semibold text-blue-400">{label}</p>
                     <p className="text-white">{value || "N/A"}</p>
                   </div>
                 </div>
@@ -231,14 +251,14 @@ const OpportunitiesInfo = () => {
       case "custos-bolsas":
         return (
           <div className="rounded-lg border border-slate-950 bg-slate-900 p-8 shadow-xl">
-            <h2 className="mb-4 font-bold text-2xl text-amber-500">
+            <h2 className="mb-4 font-bold text-2xl text-blue-400">
               Custos e Bolsas
             </h2>
             <div className="grid grid-cols-1 gap-6 text-base md:grid-cols-2">
               <div className="flex items-start space-x-3">
-                <FaDollarSign className="mt-1 shrink-0 text-amber-500" />
+                <FaDollarSign className="mt-1 shrink-0 text-blue-400" />
                 <div>
-                  <p className="font-semibold text-amber-500">
+                  <p className="font-semibold text-blue-400">
                     Taxa de Aplicação
                   </p>
                   <p className="text-white">
@@ -247,9 +267,9 @@ const OpportunitiesInfo = () => {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <FaCheck className="mt-1 shrink-0 text-amber-500" />
+                <FaCheck className="mt-1 shrink-0 text-blue-400" />
                 <div>
-                  <p className="font-semibold text-amber-500">Tipo de Bolsa</p>
+                  <p className="font-semibold text-blue-400">Tipo de Bolsa</p>
                   <span
                     className={`rounded-full px-3 py-1 font-bold text-sm uppercase ${scholarshipClasses}`}
                   >
@@ -258,9 +278,9 @@ const OpportunitiesInfo = () => {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <FaMoneyBillWave className="mt-1 shrink-0 text-amber-500" />
+                <FaMoneyBillWave className="mt-1 shrink-0 text-blue-400" />
                 <div>
-                  <p className="font-semibold text-amber-500">
+                  <p className="font-semibold text-blue-400">
                     Cobertura da Bolsa
                   </p>
                   <p className="text-white">
@@ -269,9 +289,9 @@ const OpportunitiesInfo = () => {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <FaTimesCircle className="mt-1 shrink-0 text-amber-500" />
+                <FaTimesCircle className="mt-1 shrink-0 text-blue-400" />
                 <div>
-                  <p className="font-semibold text-amber-500">Custos Extras</p>
+                  <p className="font-semibold text-blue-400">Custos Extras</p>
                   <p className="text-white">
                     {oportunidade.custosExtras || "N/A"}
                   </p>
@@ -283,7 +303,7 @@ const OpportunitiesInfo = () => {
       case "inscricao":
         return (
           <div className="rounded-lg border border-slate-950 bg-slate-900 p-8 shadow-xl">
-            <h2 className="mb-4 font-bold text-2xl text-amber-500">
+            <h2 className="mb-4 font-bold text-2xl text-blue-400">
               Processo de Inscrição
             </h2>
             <div className="grid grid-cols-1 gap-6 text-base md:grid-cols-2">
@@ -314,19 +334,19 @@ const OpportunitiesInfo = () => {
                 },
               ].map(({ icon, label, value }) => (
                 <div className="flex items-start space-x-3" key={label}>
-                  <span className="shrink-0 text-amber-500">{icon}</span>
+                  <span className="shrink-0 text-blue-400">{icon}</span>
                   <div>
-                    <p className="font-semibold text-amber-500">{label}</p>
+                    <p className="font-semibold text-blue-400">{label}</p>
                     <p className="text-white">{value || "N/A"}</p>
                   </div>
                 </div>
               ))}
               <div className="flex items-start space-x-3">
-                <FaExternalLinkAlt className="mt-1 shrink-0 text-amber-500" />
+                <FaExternalLinkAlt className="mt-1 shrink-0 text-blue-400" />
                 <div>
-                  <p className="font-semibold text-amber-500">Link Oficial</p>
+                  <p className="font-semibold text-blue-400">Link Oficial</p>
                   <a
-                    className="text-amber-500 hover:underline"
+                    className="text-blue-400 hover:underline"
                     href={oportunidade.linkOficial}
                     rel="noopener noreferrer"
                     target="_blank"
@@ -369,7 +389,7 @@ const OpportunitiesInfo = () => {
       <div className="container relative z-10 mx-auto -mt-8 px-4">
         <div className="mb-8 flex flex-col rounded-xl border border-slate-950 bg-slate-900 p-6 shadow-xl md:flex-row md:items-center md:justify-between">
           <button
-            className="hidden items-center text-amber-500 transition-colors hover:text-amber-600 md:flex"
+            className="hidden items-center text-blue-400 transition-colors hover:text-blue-500 md:flex"
             onClick={() => navigate(-1)}
             type="button"
           >
@@ -377,7 +397,7 @@ const OpportunitiesInfo = () => {
           </button>
           <div className="mb-4 flex w-full items-center justify-between md:hidden">
             <button
-              className="flex items-center text-amber-500 transition-colors hover:text-amber-600"
+              className="flex items-center text-blue-400 transition-colors hover:text-blue-500"
               onClick={() => navigate(-1)}
               type="button"
             >
@@ -386,22 +406,22 @@ const OpportunitiesInfo = () => {
           </div>
           <div className="flex w-full flex-col gap-4 md:w-auto md:flex-row md:items-center">
             {timeRemaining && (
-              <span className="rounded-full bg-amber-500 px-4 py-1 font-bold text-black text-sm">
+              <span className="rounded-full bg-blue-500 px-4 py-1 font-bold text-white text-sm">
                 {timeRemaining}
               </span>
             )}
             <button
-              className={`flex items-center justify-center rounded-full px-6 py-2 font-bold transition-colors duration-200 ${isFavorited ? "bg-amber-500 text-black" : "bg-slate-950 text-white hover:bg-slate-800"}`}
+              className={`flex items-center justify-center rounded-full px-6 py-2 font-bold transition-colors duration-200 ${isFavorited ? "bg-blue-500 text-white" : "bg-slate-950 text-white hover:bg-slate-800"}`}
               onClick={handleFavoriteToggle}
               type="button"
             >
               <FaHeart
-                className={`mr-2 ${isFavorited ? "text-black" : "text-amber-500"}`}
+                className={`mr-2 ${isFavorited ? "text-white" : "text-blue-400"}`}
               />
               {isFavorited ? "Remover" : "Adicionar aos Favoritos"}
             </button>
             <a
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-amber-500 px-6 py-2 font-bold text-black transition-colors duration-300 hover:bg-amber-600"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 px-6 py-2 font-bold text-white transition-colors duration-300 hover:bg-blue-600"
               href={oportunidade.linkOficial || "#"}
               rel="noopener noreferrer"
               target="_blank"
@@ -415,7 +435,7 @@ const OpportunitiesInfo = () => {
           <div className="mb-6 flex flex-wrap justify-center gap-2 md:justify-start">
             {tabs.map(({ key, label, icon }) => (
               <button
-                className={`rounded-full px-4 py-2 font-bold text-sm transition-colors md:text-base ${activeTab === key ? "bg-amber-500 text-black" : "bg-slate-900 text-white hover:bg-slate-800"}`}
+                className={`rounded-full px-4 py-2 font-bold text-sm transition-colors md:text-base ${activeTab === key ? "bg-blue-500 text-white" : "bg-slate-900 text-white hover:bg-slate-800"}`}
                 key={key}
                 onClick={() => setActiveTab(key)}
                 type="button"
@@ -441,7 +461,7 @@ const OpportunitiesInfo = () => {
         </div>
       )}
 
-      <OpportunityConfirmationPopup
+      <InternacionalConfirmationPopup
         onCancel={() => setConfirmationOpportunity(null)}
         onConfirm={handleConfirmRemove}
         opportunity={confirmationOpportunity}
@@ -450,4 +470,4 @@ const OpportunitiesInfo = () => {
   )
 }
 
-export default OpportunitiesInfo
+export default InternacionalInfo

@@ -1,21 +1,51 @@
 import { useEffect, useState } from "react"
 import type { IconType } from "react-icons"
 import {
-  FaBook,
+  FaBullhorn,
   FaEnvelope,
   FaGlobeAmericas,
   FaGraduationCap,
   FaInstagram,
+  FaLockOpen,
   FaMapMarkerAlt,
   FaPhone,
+  FaTrophy,
 } from "react-icons/fa"
 import { Link } from "react-router-dom"
 import useScrollReveal from "../../hooks/use-scroll-reveal"
 
-interface StatItem {
-  label: string
-  value: string
+interface FeatureItem {
+  description: string
+  icon: IconType
+  title: string
 }
+
+const featuresData: FeatureItem[] = [
+  {
+    icon: FaGlobeAmericas,
+    title: "Mundo & Brasil",
+    description:
+      "Oportunidades internacionais e nacionais centralizadas em um só mapa.",
+  },
+  {
+    icon: FaGraduationCap,
+    title: "Bolsas de Estudo",
+    description:
+      "Uma curadoria focada em bolsas que realmente transformam carreiras.",
+  },
+  {
+    icon: FaBullhorn,
+    title: "Feiras Acadêmicas",
+    description:
+      "Informações atualizadas sobre as maiores feiras e congressos.",
+  },
+  {
+    icon: FaLockOpen,
+    title: "100% Acessível",
+    description:
+      "Conteúdo gratuito e simplificado para democratizar o acesso à educação.",
+  },
+]
 
 interface CardItem {
   description: string
@@ -24,41 +54,27 @@ interface CardItem {
   to: string
 }
 
-const statsData: StatItem[] = [
-  { value: "15+", label: "Países com oportunidades" },
-  { value: "10M+", label: "Em bolsas de estudos" },
-  { value: "100+", label: "Faculdades dos EUA" },
-  { value: "99%", label: "Das oportunidades disponíveis" },
-]
-
 const cardData: CardItem[] = [
   {
-    to: "/oportunidades",
+    to: "/oportunidades/internacionais",
     icon: FaGlobeAmericas,
-    title: "Oportunidades",
+    title: "Oportunidades Internacionais",
     description:
-      "Explore e encontre programas de intercâmbio, estudo e voluntariado com bolsas de estudo em diversas partes do mundo.",
+      "Explore bolsas de estudo, summer camps e intercâmbios ao redor do mundo. O primeiro passo para sua carreira global.",
+  },
+  {
+    to: "/oportunidades/nacionais",
+    icon: FaTrophy,
+    title: "Oportunidades Nacionais",
+    description:
+      "Encontre olimpíadas, feiras científicas e projetos de liderança no Brasil para fortalecer seu currículo.",
   },
   {
     to: "/mapa",
     icon: FaMapMarkerAlt,
-    title: "Mapa Interativo",
+    title: "Exploração Visual",
     description:
-      "Visualize no mapa onde estão localizadas as oportunidades de intercâmbio, filtre por país e descubra seu próximo destino.",
-  },
-  {
-    to: "/college-list",
-    icon: FaGraduationCap,
-    title: "College List",
-    description:
-      "Crie e gerencie sua lista de faculdades, com detalhes e uma checklist de aplicação para cada uma.",
-  },
-  {
-    to: "/dicionario",
-    icon: FaBook,
-    title: "Dicionário",
-    description:
-      "Entenda os termos e siglas essenciais do universo do intercâmbio e da candidatura internacional.",
+      "Visualize no mapa onde as oportunidades estão localizadas, facilitando sua descoberta geográfica pelo mundo.",
   },
 ]
 
@@ -86,7 +102,7 @@ const Homepage = () => {
   useEffect(() => {
     if (whyVisible) {
       setCardsVisibleItems([])
-      const timers = [0, 1, 2, 3].map((_, index) =>
+      const timers = [0, 1, 2].map((_, index) =>
         setTimeout(() => {
           setCardsVisibleItems((prev) => [...prev, index])
         }, index * 150)
@@ -122,46 +138,42 @@ const Homepage = () => {
       >
         <div className="absolute inset-0 z-0 bg-linear-to-t from-slate-950 via-transparent to-transparent opacity-80" />
         <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center md:px-8">
-          <h1 className="mb-4 font-extrabold text-5xl text-white leading-tight md:text-6xl">
-            Sua Jornada para o Mundo <br /> Começa Aqui
-          </h1>
-          <p className="mb-8 max-w-3xl font-light text-white text-xl md:text-2xl">
-            Descubra oportunidades incríveis de intercâmbio, estudo e
-            voluntariado pelo mundo. Construa seu passaporte global e transforme
-            seu futuro.
+          <p className="mb-5 font-medium text-sm text-white/50 uppercase tracking-[0.2em]">
+            Passaporte Global
           </p>
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <Link
-              className="inline-block transform rounded-full bg-amber-500 px-8 py-4 font-bold text-slate-950 text-xl transition-colors duration-300 hover:scale-105 hover:bg-amber-600"
-              to="/oportunidades"
-            >
-              Ver Oportunidades →
-            </Link>
-            <Link
-              className="inline-block transform rounded-full border-2 border-white px-8 py-4 font-bold text-white text-xl transition-all duration-300 hover:scale-105 hover:bg-white hover:text-slate-950"
-              to="/mapa"
-            >
-              Explorar Mapa
-            </Link>
-          </div>
+          <h1 className="mb-6 max-w-4xl font-extrabold text-5xl text-white leading-tight tracking-tight md:text-7xl">
+            Sua jornada acadêmica não tem fronteiras
+          </h1>
+          <p className="mb-10 max-w-xl text-lg text-white/70 leading-relaxed">
+            Encontre as melhores oportunidades extracurriculares, bolsas e
+            feiras, no Brasil e no mundo, em um só lugar.
+          </p>
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div className="bg-slate-900 px-4 py-16" ref={statsRef}>
+      {/* Features Section */}
+      <div className="relative bg-slate-900 px-4 py-20" ref={statsRef}>
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 gap-8 text-center text-white sm:grid-cols-2 lg:grid-cols-4">
-            {statsData.map((stat, index) => (
-              <div
-                className={`${baseTransition} ${statsVisibleItems.includes(index) ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
-                key={stat.label}
-              >
-                <h3 className="mb-2 font-extrabold text-5xl text-amber-500">
-                  {stat.value}
-                </h3>
-                <p className="font-medium text-lg">{stat.label}</p>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {featuresData.map((feature, index) => {
+              const Icon = feature.icon
+              return (
+                <div
+                  className={`group flex flex-col items-center rounded-2xl border border-slate-700/50 bg-slate-800/50 p-8 text-center backdrop-blur-sm transition-all duration-300 hover:border-amber-500/40 hover:bg-slate-800 ${baseTransition} ${statsVisibleItems.includes(index) ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
+                  key={feature.title}
+                >
+                  <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-slate-950 text-amber-500">
+                    <Icon size={30} />
+                  </div>
+                  <h3 className="mb-2 font-bold text-lg text-amber-500">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -170,43 +182,39 @@ const Homepage = () => {
       <div className="bg-slate-950 px-4 py-24" ref={whyRef}>
         <div className="container mx-auto text-center">
           <h2
-            className={`mb-2 font-extrabold text-4xl text-white md:text-5xl ${baseTransition} ${whyVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
+            className={`mb-3 font-extrabold text-4xl text-white md:text-5xl ${baseTransition} ${whyVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
           >
             Por Que Escolher o Passaporte Global?
           </h2>
           <p
-            className={`mx-auto mb-12 max-w-2xl text-lg text-white ${baseTransition} ${whyVisible ? "translate-y-0 opacity-100 delay-200" : "translate-y-10 opacity-0"}`}
+            className={`mx-auto mb-14 max-w-xl text-base text-white/60 ${baseTransition} ${whyVisible ? "translate-y-0 opacity-100 delay-200" : "translate-y-10 opacity-0"}`}
           >
-            Uma plataforma que une várias ferramentas para sua jornada
-            internacional.
+            Três pilares para impulsionar sua trajetória acadêmica.
           </p>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {cardData.map((card, index) => {
               const Icon = card.icon
               return (
                 <Link
-                  className={`block transform transition-transform duration-300 hover:scale-105 ${baseTransition} ${cardsVisibleItems.includes(index) ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
+                  className={`group flex flex-col items-center rounded-2xl border border-slate-700/50 bg-slate-800/50 p-8 text-center backdrop-blur-sm transition-all duration-300 hover:border-amber-500/40 hover:bg-slate-800 ${baseTransition} ${cardsVisibleItems.includes(index) ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
                   key={card.to}
                   to={card.to}
                 >
-                  <div className="flex h-full flex-col justify-between rounded-xl bg-slate-900 p-8 text-center shadow-lg">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-950 text-amber-500">
-                      <Icon size={32} />
-                    </div>
-                    <div>
-                      <h3 className="mb-2 font-bold text-2xl text-amber-500">
-                        {card.title}
-                      </h3>
-                      <p className="text-white">{card.description}</p>
-                    </div>
+                  <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-slate-950 text-amber-500">
+                    <Icon size={30} />
                   </div>
+                  <h3 className="mb-2 font-bold text-lg text-amber-500">
+                    {card.title}
+                  </h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">
+                    {card.description}
+                  </p>
                 </Link>
               )
             })}
           </div>
         </div>
       </div>
-
       {/* Contact Section */}
       <div className="bg-slate-900 px-4 py-24" ref={contactRef}>
         <div className="container mx-auto grid grid-cols-1 items-center gap-12 md:grid-cols-2">

@@ -73,10 +73,9 @@ const Header = () => {
 
   const navLinks = [
     { to: "/", label: "Início", end: true },
-    { to: "/oportunidades", label: "Oportunidades", end: false },
+    { to: "/oportunidades/internacionais", label: "Internacional", end: false },
+    { to: "/oportunidades/nacionais", label: "Nacional", end: false },
     { to: "/mapa", label: "Mapa", end: false },
-    { to: "/college-list", label: "College List", end: false },
-    { to: "/dicionario", label: "Dicionário", end: false },
   ]
 
   return (
@@ -97,7 +96,7 @@ const Header = () => {
         >
           <img
             alt="Logo do Passaporte Global"
-            className="h-10"
+            className="h-10 w-auto object-contain"
             height={40}
             src="/logo.png"
             width={40}
@@ -113,7 +112,7 @@ const Header = () => {
         <Link className="flex items-center space-x-2" to="/">
           <img
             alt="Logo do Passaporte Global"
-            className="h-10"
+            className="h-10 w-auto object-contain"
             height={40}
             src="/logo.png"
             width={40}

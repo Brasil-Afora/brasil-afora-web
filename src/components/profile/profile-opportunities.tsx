@@ -11,7 +11,7 @@ import {
 import { Link } from "react-router-dom"
 import useLocalStorage from "../../hooks/use-local-storage"
 import { getTimeRemaining } from "../../lib/date-utils"
-import type { Opportunity } from "../opportunities/types"
+import type { FavoriteOpportunity } from "./types"
 
 interface ChecklistItem {
   completed: boolean
@@ -26,8 +26,8 @@ interface DeleteState {
 }
 
 interface ProfileOpportunitiesProps {
-  favoriteOpportunities: Opportunity[]
-  handleRemoveFromList: (id: number, listName: string, name: string) => void
+  favoriteOpportunities: FavoriteOpportunity[]
+  handleRemoveFromList: (detalhePath: string, name: string) => void
 }
 
 const ProfileOpportunities = ({
@@ -163,7 +163,7 @@ const ProfileOpportunities = ({
                   <div className="mt-4 flex items-center justify-between">
                     <Link
                       className="rounded-full bg-slate-950 px-4 py-2 text-center font-bold text-amber-500 text-sm transition-colors duration-200 hover:bg-slate-800"
-                      to={`/oportunidades/${oportunidade.id}`}
+                      to={oportunidade.detalhePath}
                     >
                       Ver Detalhes
                     </Link>
@@ -172,8 +172,7 @@ const ProfileOpportunities = ({
                         className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-red-500 transition-colors duration-200 hover:bg-slate-800"
                         onClick={() =>
                           handleRemoveFromList(
-                            oportunidade.id,
-                            "favorites",
+                            oportunidade.detalhePath,
                             oportunidade.nome
                           )
                         }

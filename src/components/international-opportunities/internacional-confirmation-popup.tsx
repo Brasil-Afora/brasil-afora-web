@@ -1,36 +1,34 @@
 import ReactDOM from "react-dom"
-import type { University } from "./types"
+import type { Opportunity } from "./types"
 
-interface ConfirmationPopupProps {
+interface InternacionalConfirmationPopupProps {
   onCancel: () => void
   onConfirm: () => void
-  university: University | null
-  visible: boolean
+  opportunity: Opportunity | null
 }
 
-const ConfirmationPopup = ({
-  visible,
-  university,
+const InternacionalConfirmationPopup = ({
+  opportunity,
   onConfirm,
   onCancel,
-}: ConfirmationPopupProps) => {
-  if (!visible) {
+}: InternacionalConfirmationPopupProps) => {
+  if (!opportunity) {
     return null
   }
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-75">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
       <div className="w-full max-w-md rounded-lg border border-slate-950 bg-slate-900 p-8 text-center shadow-xl">
         <p className="mb-6 text-lg text-white">
           Tem certeza que deseja remover{" "}
-          <span className="font-semibold text-amber-500">
-            {university?.nome ?? "esta faculdade"}
+          <span className="font-semibold text-blue-400">
+            {opportunity.nome}
           </span>{" "}
-          da sua lista?
+          dos seus Favoritos?
         </p>
         <div className="flex justify-center gap-4">
           <button
-            className="rounded-full bg-amber-500 px-6 py-2 font-semibold text-black transition-colors hover:bg-amber-600"
+            className="rounded-full bg-blue-500 px-6 py-2 font-semibold text-white transition-colors hover:bg-blue-600"
             onClick={onConfirm}
             type="button"
           >
@@ -50,4 +48,4 @@ const ConfirmationPopup = ({
   )
 }
 
-export default ConfirmationPopup
+export default InternacionalConfirmationPopup

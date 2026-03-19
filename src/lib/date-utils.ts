@@ -23,8 +23,11 @@ export function getTimeRemaining(deadlineString: string): string | null {
   const timeDiff = deadline.getTime() - today.getTime()
   const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24))
 
-  if (daysRemaining > 0 && daysRemaining <= 31) {
+  if (daysRemaining > 0) {
     return `Faltam ${daysRemaining} dias`
   }
-  return null
+  if (daysRemaining === 0) {
+    return "Termina hoje"
+  }
+  return "Prazo encerrado"
 }

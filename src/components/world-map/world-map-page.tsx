@@ -8,8 +8,8 @@ import {
 } from "react-icons/fa"
 import { Link } from "react-router-dom"
 import useSessionStorage from "../../hooks/use-session-storage"
-import { oportunidades } from "../../utils/opportunities-data"
-import type { Opportunity } from "../opportunities/types"
+import { oportunidadesInternacionais } from "../../utils/opportunities-international"
+import type { Opportunity } from "../international-opportunities/types"
 import WorldMap from "./world-map"
 
 interface CountryInterchange {
@@ -82,7 +82,7 @@ const agruparOportunidadesPorPais = (dados: Opportunity[]): CountryData[] => {
         tipo: oportunidade.tipo,
         duracao: oportunidade.duracao,
         prazoInscricao: oportunidade.prazoInscricao,
-        link: `/oportunidades/${oportunidade.id}`,
+        link: `/oportunidades/internacionais/${oportunidade.id}`,
       })
     }
   }
@@ -94,7 +94,7 @@ const WorldMapPage = () => {
     useSessionStorage<CountryData | null>("mapClickedCountry", null)
 
   const listaDePaisesComOportunidades = useMemo(
-    () => agruparOportunidadesPorPais(oportunidades as Opportunity[]),
+    () => agruparOportunidadesPorPais(oportunidadesInternacionais as Opportunity[]),
     []
   )
 
@@ -103,7 +103,7 @@ const WorldMapPage = () => {
       string,
       { nome: string; intercambios: Opportunity[] }
     > = {}
-    for (const op of oportunidades as Opportunity[]) {
+    for (const op of oportunidadesInternacionais as Opportunity[]) {
       const codigo = getCodigoPais(op.pais)
       if (codigo) {
         if (!agrupado[codigo]) {
@@ -203,7 +203,7 @@ const WorldMapPage = () => {
                     <div className="flex justify-end">
                       <Link
                         className="flex items-center font-semibold text-amber-500"
-                        to={`/oportunidades/${oportunidade.id}`}
+                        to={`/oportunidades/internacionais/${oportunidade.id}`}
                       >
                         Saiba Mais <FaArrowRight className="ml-2" />
                       </Link>
