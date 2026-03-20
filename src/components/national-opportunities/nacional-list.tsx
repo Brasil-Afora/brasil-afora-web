@@ -97,7 +97,9 @@ const NacionalList = ({ data }: NacionalListProps) => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <FaMapMarkerAlt className="text-amber-500 text-sm" />
-                      <span className="text-sm">{oportunidade.cidadeEstado}</span>
+                      <span className="text-sm">
+                        {oportunidade.cidadeEstado}
+                      </span>
                     </div>
                   </div>
                 </div>

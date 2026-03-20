@@ -18,8 +18,8 @@ import {
 } from "react-icons/fa"
 import { useNavigate, useParams } from "react-router-dom"
 import useLocalStorage from "../../hooks/use-local-storage"
+import { apiFetch } from "../../lib/api"
 import { getTimeRemaining, getTimeRemainingBadgeClass } from "../../lib/date-utils"
-import { getNationalOpportunityById } from "../../lib/opportunities-api"
 import type { FavoriteOpportunity } from "../profile/types"
 import NacionalConfirmationPopup from "./nacional-confirmation-popup"
 import type { Opportunity } from "./types"
@@ -34,9 +34,47 @@ interface PopupState {
 const NacionalInfo = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [oportunidade, setOportunidade] = useState<Opportunity | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState("")
+  const [oportunidade, setOportunidade] = useState<Opportunity | undefined>(
+    undefined
+  )
+  const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!id) {
+      return
+    }
+    let cancelled = false
+
+    const fetchData = async () => {
+      try {
+        const result = await apiFetch<Opportunity>(
+          `/oportunidades/nacionais/${id}`
+        )
+        if (!cancelled) {
+          setOportunidade(result)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setFetchError(
+            err instanceof Error
+              ? err.message
+              : "Erro ao carregar oportunidade."
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   const [favorites, setFavorites] = useLocalStorage<FavoriteOpportunity[]>(
     "favorites",
@@ -60,35 +98,6 @@ const NacionalInfo = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }, [])
-
-  useEffect(() => {
-    const fetchOpportunity = async () => {
-      if (!id) {
-        setErrorMessage("Oportunidade nao encontrada.")
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        setIsLoading(true)
-        setErrorMessage("")
-        const data = await getNationalOpportunityById(id)
-        if (!data) {
-          setErrorMessage("Oportunidade nao encontrada.")
-          setOportunidade(null)
-          return
-        }
-
-        setOportunidade(data as Opportunity)
-      } catch {
-        setErrorMessage("Nao foi possivel carregar os detalhes da oportunidade.")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    void fetchOpportunity()
-  }, [id])
 
   useEffect(() => {
     if (popup.visible) {
@@ -134,7 +143,10 @@ const NacionalInfo = () => {
       setFavorites(
         favorites.filter(
           (fav) =>
-            !(fav.categoria === "nacional" && fav.id === confirmationOpportunity.id)
+            !(
+              fav.categoria === "nacional" &&
+              fav.id === confirmationOpportunity.id
+            )
         )
       )
       setPopup({
@@ -145,18 +157,20 @@ const NacionalInfo = () => {
     setConfirmationOpportunity(null)
   }
 
-  if (!oportunidade) {
-    if (isLoading) {
-      return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-          <p className="text-xl">Carregando oportunidade...</p>
-        </div>
-      )
-    }
-
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-        <p className="text-xl">{errorMessage || "Oportunidade nao encontrada."}</p>
+        <p className="text-white/60 text-xl">Carregando oportunidade...</p>
+      </div>
+    )
+  }
+
+  if (fetchError || !oportunidade) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+        <p className="text-xl">
+          {fetchError ?? "Oportunidade não encontrada."}
+        </p>
       </div>
     )
   }
@@ -192,9 +206,7 @@ const NacionalInfo = () => {
       case "sobre":
         return (
           <div className="rounded-lg border border-slate-950 bg-slate-900 p-8 shadow-xl">
-            <h2 className="mb-4 font-bold text-2xl text-amber-500">
-              Sobre
-            </h2>
+            <h2 className="mb-4 font-bold text-2xl text-amber-500">Sobre</h2>
             <p className="mb-6 text-base text-white leading-relaxed">
               {oportunidade.sobre || "N/A"}
             </p>
@@ -251,13 +263,17 @@ const NacionalInfo = () => {
                 <FaFileAlt className="mt-1 shrink-0 text-amber-500" />
                 <div>
                   <p className="font-semibold text-amber-500">Requisitos</p>
-                  <p className="text-white">{oportunidade.requisitos || "N/A"}</p>
+                  <p className="text-white">
+                    {oportunidade.requisitos || "N/A"}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <FaClipboardList className="mt-1 shrink-0 text-amber-500" />
                 <div>
-                  <p className="font-semibold text-amber-500">Instituição Responsável</p>
+                  <p className="font-semibold text-amber-500">
+                    Instituição Responsável
+                  </p>
                   <p className="text-white">
                     {oportunidade.instituicaoResponsavel || "N/A"}
                   </p>
@@ -302,7 +318,9 @@ const NacionalInfo = () => {
                 <FaMoneyBillWave className="mt-1 shrink-0 text-amber-500" />
                 <div>
                   <p className="font-semibold text-amber-500">Benefícios</p>
-                  <p className="text-white">{oportunidade.beneficios || "N/A"}</p>
+                  <p className="text-white">
+                    {oportunidade.beneficios || "N/A"}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">

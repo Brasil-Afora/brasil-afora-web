@@ -8,10 +8,10 @@ import VerifyEmailPage from "./components/auth/verify-email-page"
 import AdminPage from "./components/admin/admin-page"
 import Header from "./components/header/header"
 import Homepage from "./components/homepage/homepage"
-import InternacionalMain from "./components/international-opportunities/internacional-main"
 import InternacionalInfo from "./components/international-opportunities/internacional-info"
-import NacionalMain from "./components/national-opportunities/nacional-main"
+import InternacionalMain from "./components/international-opportunities/internacional-main"
 import NacionalInfo from "./components/national-opportunities/nacional-info"
+import NacionalMain from "./components/national-opportunities/nacional-main"
 import ProfileMain from "./components/profile/profile-main"
 import WorldMapPage from "./components/world-map/world-map-page"
 
@@ -33,10 +33,22 @@ function App() {
               <Header />
               <Routes>
                 <Route element={<Homepage />} path="/" />
-                <Route element={<InternacionalMain />} path="/oportunidades/internacionais" />
-                <Route element={<InternacionalInfo />} path="/oportunidades/internacionais/:id" />
-                <Route element={<NacionalMain />} path="/oportunidades/nacionais" />
-                <Route element={<NacionalInfo />} path="/oportunidades/nacionais/:id" />
+                <Route
+                  element={<InternacionalMain />}
+                  path="/oportunidades/internacionais"
+                />
+                <Route
+                  element={<InternacionalInfo />}
+                  path="/oportunidades/internacionais/:id"
+                />
+                <Route
+                  element={<NacionalMain />}
+                  path="/oportunidades/nacionais"
+                />
+                <Route
+                  element={<NacionalInfo />}
+                  path="/oportunidades/nacionais/:id"
+                />
                 <Route element={<WorldMapPage />} path="/mapa" />
                 <Route
                   element={

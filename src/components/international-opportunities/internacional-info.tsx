@@ -20,8 +20,8 @@ import {
 } from "react-icons/fa"
 import { useNavigate, useParams } from "react-router-dom"
 import useLocalStorage from "../../hooks/use-local-storage"
+import { apiFetch } from "../../lib/api"
 import { getTimeRemaining, getTimeRemainingBadgeClass } from "../../lib/date-utils"
-import { getInternationalOpportunityById } from "../../lib/opportunities-api"
 import type { FavoriteOpportunity } from "../profile/types"
 import InternacionalConfirmationPopup from "./internacional-confirmation-popup"
 import type { Opportunity } from "./types"
@@ -49,9 +49,47 @@ const getScholarshipTagClasses = (tipoBolsa: string): string => {
 const InternacionalInfo = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [oportunidade, setOportunidade] = useState<Opportunity | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState("")
+  const [oportunidade, setOportunidade] = useState<Opportunity | undefined>(
+    undefined
+  )
+  const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!id) {
+      return
+    }
+    let cancelled = false
+
+    const fetchData = async () => {
+      try {
+        const result = await apiFetch<Opportunity>(
+          `/oportunidades/internacionais/${id}`
+        )
+        if (!cancelled) {
+          setOportunidade(result)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setFetchError(
+            err instanceof Error
+              ? err.message
+              : "Erro ao carregar oportunidade."
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   const [favorites, setFavorites] = useLocalStorage<FavoriteOpportunity[]>(
     "favorites",
@@ -75,35 +113,6 @@ const InternacionalInfo = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }, [])
-
-  useEffect(() => {
-    const fetchOpportunity = async () => {
-      if (!id) {
-        setErrorMessage("Oportunidade nao encontrada.")
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        setIsLoading(true)
-        setErrorMessage("")
-        const data = await getInternationalOpportunityById(id)
-        if (!data) {
-          setErrorMessage("Oportunidade nao encontrada.")
-          setOportunidade(null)
-          return
-        }
-
-        setOportunidade(data as Opportunity)
-      } catch {
-        setErrorMessage("Nao foi possivel carregar os detalhes da oportunidade.")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    void fetchOpportunity()
-  }, [id])
 
   useEffect(() => {
     if (popup.visible) {
@@ -163,18 +172,20 @@ const InternacionalInfo = () => {
     setConfirmationOpportunity(null)
   }
 
-  if (!oportunidade) {
-    if (isLoading) {
-      return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-          <p className="text-xl">Carregando oportunidade...</p>
-        </div>
-      )
-    }
-
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-        <p className="text-xl">{errorMessage || "Oportunidade nao encontrada."}</p>
+        <p className="text-white/60 text-xl">Carregando oportunidade...</p>
+      </div>
+    )
+  }
+
+  if (fetchError || !oportunidade) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+        <p className="text-xl">
+          {fetchError ?? "Oportunidade não encontrada."}
+        </p>
       </div>
     )
   }
@@ -461,6 +472,11 @@ const InternacionalInfo = () => {
             </button>
           </div>
           <div className="flex w-full flex-col gap-4 md:w-auto md:flex-row md:items-center">
+            {timeRemaining && (
+              <span className="rounded-full bg-blue-500 px-4 py-1 font-bold text-sm text-white">
+                {timeRemaining}
+              </span>
+            )}
             <button
               className={`inline-flex h-11 min-w-[248px] items-center justify-center rounded-full px-6 py-2 font-bold transition-colors duration-200 ${isFavorited ? "bg-blue-500 text-white" : "bg-slate-950 text-white hover:bg-slate-800"}`}
               onClick={handleFavoriteToggle}

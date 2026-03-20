@@ -165,10 +165,10 @@ const Homepage = () => {
                   <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-slate-950 text-amber-500">
                     <Icon size={30} />
                   </div>
-                  <h3 className="mb-2 font-bold text-lg text-amber-500">
+                  <h3 className="mb-2 font-bold text-amber-500 text-lg">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-slate-400 leading-relaxed">
+                  <p className="text-slate-400 text-sm leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -203,10 +203,10 @@ const Homepage = () => {
                   <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-slate-950 text-amber-500">
                     <Icon size={30} />
                   </div>
-                  <h3 className="mb-2 font-bold text-lg text-amber-500">
+                  <h3 className="mb-2 font-bold text-amber-500 text-lg">
                     {card.title}
                   </h3>
-                  <p className="text-sm text-slate-400 leading-relaxed">
+                  <p className="text-slate-400 text-sm leading-relaxed">
                     {card.description}
                   </p>
                 </Link>
