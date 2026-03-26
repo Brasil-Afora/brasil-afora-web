@@ -97,18 +97,21 @@ const Header = () => {
           <FaBars size={24} />
         </button>
         <Link
-          className="absolute left-1/2 flex -translate-x-1/2 transform items-center space-x-2"
+          className="absolute left-1/2 flex -translate-x-1/2 transform items-center space-x-1"
           to="/"
         >
+          <span className="whitespace-nowrap font-bebas font-bold text-2xl text-white sm:text-3xl">
+            BRASIL
+          </span>
           <img
-            alt="Logo do Passaporte Global"
-            className="h-10 w-auto object-contain"
-            height={40}
+            alt="Logo do Brasil Afora"
+            className="h-12 w-auto object-contain"
+            height={48}
             src="/logo.png"
-            width={40}
+            width={48}
           />
-          <span className="whitespace-nowrap font-bold text-lg text-white sm:text-xl">
-            Passaporte Global
+          <span className="whitespace-nowrap font-bebas font-bold text-2xl text-amber-500 sm:text-3xl">
+            AFORA
           </span>
         </Link>
         <div className="h-6 w-6" />
@@ -117,14 +120,14 @@ const Header = () => {
       <div className="hidden flex-1 items-center justify-between md:flex">
         <Link className="flex items-center space-x-2" to="/">
           <img
-            alt="Logo do Passaporte Global"
-            className="h-10 w-auto object-contain"
-            height={40}
+            alt="Logo do Brasil Afora"
+            className="h-16 w-auto object-contain"
+            height={64}
             src="/logo.png"
-            width={40}
+            width={64}
           />
-          <span className="whitespace-nowrap font-bold text-white text-xl">
-            Passaporte Global
+          <span className="whitespace-nowrap font-bebas font-bold text-white text-xl">
+            BRASIL <span className="text-amber-500">AFORA</span>
           </span>
         </Link>
 

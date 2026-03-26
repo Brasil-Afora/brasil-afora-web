@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import type { Opportunity } from "../components/national-opportunities/types"
-import { apiFetch } from "../lib/api"
+import { getNationalOpportunities } from "../lib/opportunities-api"
 
 interface UseOportunidadesNacionaisResult {
   data: Opportunity[]
@@ -19,9 +19,7 @@ export const useOportunidadesNacionais =
 
       const fetchData = async () => {
         try {
-          const result = await apiFetch<Opportunity[]>(
-            "/oportunidades/nacionais"
-          )
+          const result = await getNationalOpportunities()
           if (!cancelled) {
             setData(result)
           }

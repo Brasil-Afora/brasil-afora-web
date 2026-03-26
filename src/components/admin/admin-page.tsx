@@ -1,321 +1,298 @@
-import { useEffect, useMemo, useState } from "react"
-import { FaEdit, FaPlus, FaTrash, FaUserShield } from "react-icons/fa"
-import { useSession } from "../../lib/auth-client"
-import {
-    createInternationalOpportunity,
-    createNationalOpportunity,
-    deleteInternationalOpportunity,
-    deleteNationalOpportunity,
-    getInternationalOpportunities,
-    getNationalOpportunities,
-    type InternationalOpportunity,
-    type InternationalOpportunityInput,
-    type NationalOpportunity,
-    type NationalOpportunityInput,
-    updateInternationalOpportunity,
-    updateNationalOpportunity,
-} from "../../lib/opportunities-api"
+import { useState } from "react"
+import { FaUserShield } from "react-icons/fa"
+import useAdminData from "../../hooks/use-admin-data"
+import { createNationalOpportunity, type InternationalOpportunityInput, type NationalOpportunityInput } from "../../lib/opportunities-api"
+import AdminFeedback from "./admin-feedback"
+import AdminOpportunityForm from "./admin-opportunity-form"
+import AdminRecordsList from "./admin-records-list"
+import AdminTabs, { type AdminTab } from "./admin-tabs"
 
-type AdminTab = "internacional" | "nacional"
+type FormMode = "campos" | "texto"
 
-interface FeedbackState {
-    message: string
-    type: "error" | "success"
-}
+const INTERNATIONAL_FIELDS = [
+    { key: "nome", label: "Nome" },
+    { key: "imagem", label: "Imagem (URL)" },
+    { key: "pais", label: "Pais" },
+    { key: "cidade", label: "Cidade" },
+    { key: "instituicaoResponsavel", label: "Instituicao" },
+    { key: "tipo", label: "Tipo" },
+    { key: "nivelEnsino", label: "Nivel de ensino" },
+    { key: "faixaEtaria", label: "Faixa etaria" },
+    { key: "requisitosIdioma", label: "Requisitos de idioma" },
+    { key: "taxaAplicacao", label: "Taxa de aplicacao" },
+    { key: "tipoBolsa", label: "Tipo de bolsa" },
+    { key: "coberturaBolsa", label: "Cobertura da bolsa" },
+    { key: "custosExtras", label: "Custos extras" },
+    { key: "duracao", label: "Duracao" },
+    { key: "prazoInscricao", label: "Prazo (dd/mm/aaaa)" },
+    { key: "etapasSelecao", label: "Etapas de selecao" },
+    { key: "processoInscricao", label: "Processo de inscricao" },
+    { key: "linkOficial", label: "Link oficial" },
+    { key: "contato", label: "Contato" },
+]
 
-interface NationalFormState extends Omit<NationalOpportunityInput, "requisitosEspecificos"> {
-    requisitosEspecificos: string
-}
+const INTERNATIONAL_TEXTAREA_FIELDS = [
+    { key: "descricao", label: "Descricao" },
+    { key: "requisitosEspecificos", label: "Requisitos especificos" },
+]
 
-const initialInternationalForm: InternationalOpportunityInput = {
-    cidade: "",
-    coberturaBolsa: "",
-    contato: "",
-    custosExtras: "",
-    descricao: "",
-    duracao: "",
-    etapasSelecao: "",
-    faixaEtaria: "",
-    imagem: "",
-    instituicaoResponsavel: "",
-    linkOficial: "",
-    nivelEnsino: "",
-    nome: "",
-    pais: "",
-    prazoInscricao: "",
-    processoInscricao: "",
-    requisitosEspecificos: "",
-    requisitosIdioma: "",
-    taxaAplicacao: "",
-    tipo: "",
-    tipoBolsa: "",
-}
+const NATIONAL_FIELDS = [
+    { key: "nome", label: "Nome" },
+    { key: "imagem", label: "Imagem (URL)" },
+    { key: "pais", label: "Pais" },
+    { key: "tipo", label: "Tipo" },
+    { key: "nivelEnsino", label: "Nivel de ensino" },
+    { key: "modalidade", label: "Modalidade" },
+    { key: "prazoInscricao", label: "Prazo (dd/mm/aaaa)" },
+    { key: "duracao", label: "Duracao" },
+    { key: "cidadeEstado", label: "Cidade/Estado" },
+    { key: "faixaEtaria", label: "Faixa etaria" },
+    { key: "instituicaoResponsavel", label: "Instituicao" },
+    { key: "taxaAplicacao", label: "Taxa de aplicacao" },
+    { key: "beneficios", label: "Beneficios" },
+    { key: "custos", label: "Custos" },
+    { key: "custosExtras", label: "Custos extras" },
+    { key: "etapasSelecao", label: "Etapas de selecao" },
+    { key: "linkOficial", label: "Link oficial" },
+    { key: "contato", label: "Contato" },
+]
 
-const initialNationalForm: NationalFormState = {
-    beneficios: "",
-    cidadeEstado: "",
-    contato: "",
-    custos: "",
-    custosExtras: "",
-    descricaoBreve: "",
-    duracao: "",
-    etapasSelecao: "",
-    faixaEtaria: "",
-    imagem: "",
-    instituicaoResponsavel: "",
-    linkOficial: "",
-    modalidade: "Online",
-    nivelEnsino: "",
-    nome: "",
-    pais: "Brasil",
-    prazoInscricao: "",
-    requisitos: "",
-    requisitosEspecificos: "",
-    sobre: "",
-    taxaAplicacao: "",
-    tipo: "",
-}
-
-const splitRequirements = (value: string): string[] =>
-    value
-        .split(/\r?\n|;|\|/)
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0)
+const NATIONAL_TEXTAREA_FIELDS = [
+    { key: "sobre", label: "Sobre" },
+    { key: "requisitos", label: "Requisitos" },
+    { key: "requisitosEspecificos", label: "Requisitos especificos (um por linha)" },
+]
 
 const AdminPage = () => {
-    const { data: session, isPending } = useSession()
+    const {
+        session,
+        isSessionPending,
+        isLoading,
+        isAdmin,
+        feedback,
+        setFeedback,
+        internationalList,
+        nationalList,
+        internationalForm,
+        nationalForm,
+        editingInternationalId,
+        editingNationalId,
+        handleInternationalChange,
+        handleNationalChange,
+        handleEditInternational,
+        handleEditNational,
+        handleSaveInternational,
+        handleSaveNational,
+        handleDeleteInternational,
+        handleDeleteNational,
+        resetInternationalForm,
+        resetNationalForm,
+        loadData,
+    } = useAdminData()
+
     const [activeTab, setActiveTab] = useState<AdminTab>("internacional")
-    const [isLoading, setIsLoading] = useState(true)
-    const [feedback, setFeedback] = useState<FeedbackState | null>(null)
+    const [formMode, setFormMode] = useState<FormMode>("campos")
+    const [jsonInput, setJsonInput] = useState("")
 
-    const [internationalList, setInternationalList] = useState<InternationalOpportunity[]>([])
-    const [nationalList, setNationalList] = useState<NationalOpportunity[]>([])
+    const handleResetInternational = () => {
+        resetInternationalForm()
+        setFormMode("campos")
+        setJsonInput("")
+    }
 
-    const [internationalForm, setInternationalForm] =
-        useState<InternationalOpportunityInput>(initialInternationalForm)
-    const [nationalForm, setNationalForm] =
-        useState<NationalFormState>(initialNationalForm)
+    const handleResetNational = () => {
+        resetNationalForm()
+        setFormMode("campos")
+        setJsonInput("")
+    }
 
-    const [editingInternationalId, setEditingInternationalId] = useState<string | null>(null)
-    const [editingNationalId, setEditingNationalId] = useState<string | null>(null)
+    const parseTextInput = (text: string): Record<string, string> => {
+        const result: Record<string, string> = {}
+        const lines = text.split("\n")
+        let currentKey = ""
+        let currentValue = ""
 
-    const isAdmin = useMemo(() => {
-        const role = (session?.user as { role?: string } | undefined)?.role
-        return role === "admin"
-    }, [session?.user])
+        for (const line of lines) {
+            const colonIndex = line.indexOf(":")
+            if (colonIndex > 0) {
+                const potentialKey = line.substring(0, colonIndex).trim().toLowerCase()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                    .replace(/\s+/g, "")
 
-    const loadData = async () => {
-        try {
-            setIsLoading(true)
-            setFeedback(null)
+                const keyMap: Record<string, string> = {
+                    nome: "nome",
+                    imagem: "imagem",
+                    pais: "pais",
+                    cidade: "cidade",
+                    cidadeestado: "cidadeEstado",
+                    instituicao: "instituicaoResponsavel",
+                    instituicaoresponsavel: "instituicaoResponsavel",
+                    tipo: "tipo",
+                    nivelensino: "nivelEnsino",
+                    nivel: "nivelEnsino",
+                    faixaetaria: "faixaEtaria",
+                    idade: "faixaEtaria",
+                    requisitosidioma: "requisitosIdioma",
+                    idioma: "requisitosIdioma",
+                    taxaaplicacao: "taxaAplicacao",
+                    taxa: "taxaAplicacao",
+                    tipobolsa: "tipoBolsa",
+                    bolsa: "tipoBolsa",
+                    coberturaabolsa: "coberturaBolsa",
+                    cobertura: "coberturaBolsa",
+                    custosextras: "custosExtras",
+                    custos: "custos",
+                    duracao: "duracao",
+                    prazoinscricao: "prazoInscricao",
+                    prazo: "prazoInscricao",
+                    etapasselecao: "etapasSelecao",
+                    etapas: "etapasSelecao",
+                    processoinscricao: "processoInscricao",
+                    processo: "processoInscricao",
+                    linkoficial: "linkOficial",
+                    link: "linkOficial",
+                    site: "linkOficial",
+                    contato: "contato",
+                    email: "contato",
+                    descricao: "descricao",
+                    sobre: "sobre",
+                    descricaobreve: "descricaoBreve",
+                    requisitos: "requisitos",
+                    requisitosespecificos: "requisitosEspecificos",
+                    modalidade: "modalidade",
+                    beneficios: "beneficios",
+                }
 
-            const [international, national] = await Promise.all([
-                getInternationalOpportunities(),
-                getNationalOpportunities(),
-            ])
-
-            setInternationalList(international)
-            setNationalList(national)
-        } catch {
-            setFeedback({
-                type: "error",
-                message: "Nao foi possivel carregar os dados administrativos.",
-            })
-        } finally {
-            setIsLoading(false)
+                const mappedKey = keyMap[potentialKey]
+                if (mappedKey) {
+                    if (currentKey && currentValue) {
+                        result[currentKey] = currentValue.trim()
+                    }
+                    currentKey = mappedKey
+                    currentValue = line.substring(colonIndex + 1).trim()
+                } else {
+                    if (currentKey) {
+                        currentValue += "\n" + line
+                    }
+                }
+            } else if (currentKey && line.trim()) {
+                currentValue += "\n" + line
+            }
         }
+
+        if (currentKey && currentValue) {
+            result[currentKey] = currentValue.trim()
+        }
+
+        return result
     }
 
-    useEffect(() => {
-        void loadData()
-    }, [])
-
-    const resetInternationalForm = () => {
-        setEditingInternationalId(null)
-        setInternationalForm(initialInternationalForm)
-    }
-
-    const resetNationalForm = () => {
-        setEditingNationalId(null)
-        setNationalForm(initialNationalForm)
-    }
-
-    const handleInternationalChange = (
-        field: keyof InternationalOpportunityInput,
-        value: string
-    ) => {
-        setInternationalForm((prev) => ({
-            ...prev,
-            [field]: value,
-        }))
-    }
-
-    const handleNationalChange = (field: keyof NationalFormState, value: string) => {
-        setNationalForm((prev) => ({
-            ...prev,
-            [field]: value,
-        }))
-    }
-
-    const handleEditInternational = (item: InternationalOpportunity) => {
-        setActiveTab("internacional")
-        setEditingInternationalId(item.id)
-        setInternationalForm({
-            cidade: item.cidade,
-            coberturaBolsa: item.coberturaBolsa,
-            contato: item.contato,
-            custosExtras: item.custosExtras,
-            descricao: item.descricao,
-            duracao: item.duracao,
-            etapasSelecao: item.etapasSelecao,
-            faixaEtaria: item.faixaEtaria,
-            imagem: item.imagem,
-            instituicaoResponsavel: item.instituicaoResponsavel,
-            linkOficial: item.linkOficial,
-            nivelEnsino: item.nivelEnsino,
-            nome: item.nome,
-            pais: item.pais,
-            prazoInscricao: item.prazoInscricao,
-            processoInscricao: item.processoInscricao,
-            requisitosEspecificos: item.requisitosEspecificos,
-            requisitosIdioma: item.requisitosIdioma,
-            taxaAplicacao: item.taxaAplicacao,
-            tipo: item.tipo,
-            tipoBolsa: item.tipoBolsa,
-        })
-    }
-
-    const handleEditNational = (item: NationalOpportunity) => {
-        setActiveTab("nacional")
-        setEditingNationalId(item.id)
-        setNationalForm({
-            beneficios: item.beneficios,
-            cidadeEstado: item.cidadeEstado,
-            contato: item.contato,
-            custos: item.custos,
-            custosExtras: item.custosExtras,
-            descricaoBreve: item.descricaoBreve,
-            duracao: item.duracao,
-            etapasSelecao: item.etapasSelecao,
-            faixaEtaria: item.faixaEtaria,
-            imagem: item.imagem,
-            instituicaoResponsavel: item.instituicaoResponsavel,
-            linkOficial: item.linkOficial,
-            modalidade: item.modalidade,
-            nivelEnsino: item.nivelEnsino,
-            nome: item.nome,
-            pais: item.pais,
-            prazoInscricao: item.prazoInscricao,
-            requisitos: item.requisitos,
-            requisitosEspecificos: item.requisitosEspecificos.join("\n"),
-            sobre: item.sobre,
-            taxaAplicacao: item.taxaAplicacao,
-            tipo: item.tipo,
-        })
-    }
-
-    const handleSaveInternational = async () => {
+    const handleSaveTextInternational = async () => {
         try {
             setFeedback(null)
-            if (editingInternationalId) {
-                await updateInternationalOpportunity(editingInternationalId, internationalForm)
-                setFeedback({ type: "success", message: "Oportunidade internacional atualizada." })
-            } else {
-                await createInternationalOpportunity(internationalForm)
-                setFeedback({ type: "success", message: "Oportunidade internacional criada." })
+            const parsed = parseTextInput(jsonInput)
+
+            const formData: InternationalOpportunityInput = {
+                nome: parsed.nome || "",
+                imagem: parsed.imagem || "",
+                pais: parsed.pais || "",
+                cidade: parsed.cidade || "",
+                instituicaoResponsavel: parsed.instituicaoResponsavel || "",
+                tipo: parsed.tipo || "",
+                nivelEnsino: parsed.nivelEnsino || "",
+                faixaEtaria: parsed.faixaEtaria || "",
+                requisitosIdioma: parsed.requisitosIdioma || "",
+                taxaAplicacao: parsed.taxaAplicacao || "",
+                tipoBolsa: parsed.tipoBolsa || "",
+                coberturaBolsa: parsed.coberturaBolsa || "",
+                custosExtras: parsed.custosExtras || "",
+                duracao: parsed.duracao || "",
+                prazoInscricao: parsed.prazoInscricao || "",
+                etapasSelecao: parsed.etapasSelecao || "",
+                processoInscricao: parsed.processoInscricao || "",
+                linkOficial: parsed.linkOficial || "",
+                contato: parsed.contato || "",
+                descricao: parsed.descricao || "",
+                requisitosEspecificos: parsed.requisitosEspecificos || "",
             }
 
-            await loadData()
-            resetInternationalForm()
+            for (const [key, value] of Object.entries(formData)) {
+                handleInternationalChange(key as keyof InternationalOpportunityInput, value)
+            }
+            await handleSaveInternational()
+            handleResetInternational()
         } catch (error) {
             setFeedback({
                 type: "error",
                 message:
                     error instanceof Error
-                        ? error.message
-                        : "Nao foi possivel salvar a oportunidade internacional.",
+                        ? `Erro ao processar texto: ${error.message}`
+                        : "Erro ao processar o texto. Verifique o formato.",
             })
         }
     }
 
-    const handleSaveNational = async () => {
+    const handleSaveTextNational = async () => {
         try {
             setFeedback(null)
+            const parsed = parseTextInput(jsonInput)
+
+            // Normaliza modalidade para aceitar "Online", "Presencial" ou "Híbrido"
+            let modalidade: "Online" | "Presencial" | "Híbrido" = "Online"
+            if (parsed.modalidade) {
+                const modalidadeLower = parsed.modalidade.toLowerCase()
+                if (modalidadeLower.includes("hibrido") || modalidadeLower.includes("híbrido") || modalidadeLower.includes("misto")) {
+                    modalidade = "Híbrido"
+                } else if (modalidadeLower.includes("presencial")) {
+                    modalidade = "Presencial"
+                } else if (modalidadeLower.includes("online") || modalidadeLower.includes("remoto") || modalidadeLower.includes("ead")) {
+                    modalidade = "Online"
+                }
+            }
+
             const payload: NationalOpportunityInput = {
-                ...nationalForm,
-                requisitosEspecificos: splitRequirements(nationalForm.requisitosEspecificos),
+                nome: parsed.nome || "",
+                imagem: parsed.imagem || "",
+                pais: parsed.pais || "Brasil",
+                tipo: parsed.tipo || "",
+                nivelEnsino: parsed.nivelEnsino || "",
+                modalidade,
+                prazoInscricao: parsed.prazoInscricao || "",
+                duracao: parsed.duracao || "",
+                cidadeEstado: parsed.cidadeEstado || parsed.cidade || "",
+                faixaEtaria: parsed.faixaEtaria || "",
+                instituicaoResponsavel: parsed.instituicaoResponsavel || "",
+                taxaAplicacao: parsed.taxaAplicacao || "",
+                beneficios: parsed.beneficios || "",
+                custos: parsed.custos || "",
+                custosExtras: parsed.custosExtras || "",
+                etapasSelecao: parsed.etapasSelecao || "",
+                linkOficial: parsed.linkOficial || "",
+                contato: parsed.contato || "",
+                sobre: parsed.sobre || parsed.descricao || "",
+                requisitos: parsed.requisitos || "",
+                requisitosEspecificos: (parsed.requisitosEspecificos || "")
+                    .split(/\r?\n|;|\|/)
+                    .map((item) => item.trim())
+                    .filter((item) => item.length > 0),
             }
 
-            if (editingNationalId) {
-                await updateNationalOpportunity(editingNationalId, payload)
-                setFeedback({ type: "success", message: "Oportunidade nacional atualizada." })
-            } else {
-                await createNationalOpportunity(payload)
-                setFeedback({ type: "success", message: "Oportunidade nacional criada." })
-            }
-
+            await createNationalOpportunity(payload)
+            setFeedback({ type: "success", message: "Oportunidade nacional criada." })
             await loadData()
-            resetNationalForm()
+            handleResetNational()
         } catch (error) {
             setFeedback({
                 type: "error",
                 message:
                     error instanceof Error
-                        ? error.message
-                        : "Nao foi possivel salvar a oportunidade nacional.",
+                        ? `Erro ao processar texto: ${error.message}`
+                        : "Erro ao processar o texto. Verifique o formato.",
             })
         }
     }
 
-    const handleDeleteInternational = async (id: string) => {
-        const confirmed = window.confirm("Deseja realmente excluir esta oportunidade internacional?")
-        if (!confirmed) {
-            return
-        }
-
-        try {
-            await deleteInternationalOpportunity(id)
-            setFeedback({ type: "success", message: "Oportunidade internacional removida." })
-            await loadData()
-            if (editingInternationalId === id) {
-                resetInternationalForm()
-            }
-        } catch (error) {
-            setFeedback({
-                type: "error",
-                message:
-                    error instanceof Error
-                        ? error.message
-                        : "Nao foi possivel excluir a oportunidade internacional.",
-            })
-        }
-    }
-
-    const handleDeleteNational = async (id: string) => {
-        const confirmed = window.confirm("Deseja realmente excluir esta oportunidade nacional?")
-        if (!confirmed) {
-            return
-        }
-
-        try {
-            await deleteNationalOpportunity(id)
-            setFeedback({ type: "success", message: "Oportunidade nacional removida." })
-            await loadData()
-            if (editingNationalId === id) {
-                resetNationalForm()
-            }
-        } catch (error) {
-            setFeedback({
-                type: "error",
-                message:
-                    error instanceof Error
-                        ? error.message
-                        : "Nao foi possivel excluir a oportunidade nacional.",
-            })
-        }
-    }
-
-    if (isPending || isLoading) {
+    if (isSessionPending || isLoading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
                 Carregando painel administrativo...
@@ -350,283 +327,87 @@ const AdminPage = () => {
                     <h1 className="font-bold text-3xl text-amber-500">Painel Administrativo</h1>
                 </div>
 
-                <div className="mb-4 flex gap-2">
-                    <button
-                        className={`rounded-lg px-4 py-2 font-semibold ${activeTab === "internacional" ? "bg-blue-500 text-white" : "bg-slate-900 text-slate-200"}`}
-                        onClick={() => setActiveTab("internacional")}
-                        type="button"
-                    >
-                        Internacionais
-                    </button>
-                    <button
-                        className={`rounded-lg px-4 py-2 font-semibold ${activeTab === "nacional" ? "bg-amber-500 text-black" : "bg-slate-900 text-slate-200"}`}
-                        onClick={() => setActiveTab("nacional")}
-                        type="button"
-                    >
-                        Nacionais
-                    </button>
-                </div>
-
-                {feedback && (
-                    <div
-                        className={`mb-4 rounded-lg p-3 ${feedback.type === "success" ? "bg-green-900/40 text-green-200" : "bg-red-900/40 text-red-200"}`}
-                    >
-                        {feedback.message}
-                    </div>
-                )}
+                <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
+                <AdminFeedback feedback={feedback} />
 
                 {activeTab === "internacional" ? (
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                        <section className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-                            <h2 className="mb-3 font-bold text-blue-400 text-xl">Registros</h2>
-                            <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
-                                {internationalList.map((item) => (
-                                    <div className="rounded-lg border border-slate-800 bg-slate-950 p-3" key={item.id}>
-                                        <p className="font-semibold text-white">{item.nome}</p>
-                                        <p className="text-sm text-slate-400">{item.pais}</p>
-                                        <div className="mt-2 flex gap-2">
-                                            <button
-                                                className="rounded-md bg-slate-800 px-3 py-1 text-sm"
-                                                onClick={() => handleEditInternational(item)}
-                                                type="button"
-                                            >
-                                                <span className="inline-flex items-center gap-2">
-                                                    <FaEdit /> Editar
-                                                </span>
-                                            </button>
-                                            <button
-                                                className="rounded-md bg-red-700 px-3 py-1 text-sm text-white"
-                                                onClick={() => handleDeleteInternational(item.id)}
-                                                type="button"
-                                            >
-                                                <span className="inline-flex items-center gap-2">
-                                                    <FaTrash /> Excluir
-                                                </span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
+                        <AdminRecordsList
+                            accentColor="blue"
+                            items={internationalList.map((item) => ({
+                                id: item.id,
+                                name: item.nome,
+                                subtitle: item.pais,
+                            }))}
+                            onDelete={handleDeleteInternational}
+                            onEdit={(id) => {
+                                const item = internationalList.find((i) => i.id === id)
+                                if (item) {
+                                    handleEditInternational(item)
+                                }
+                            }}
+                            title="Registros"
+                        />
 
-                        <section className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-                            <div className="mb-3 flex items-center justify-between">
-                                <h2 className="font-bold text-blue-400 text-xl">
-                                    {editingInternationalId ? "Editar Oportunidade" : "Nova Oportunidade"}
-                                </h2>
-                                <button
-                                    className="rounded-md bg-slate-800 px-3 py-1 text-sm"
-                                    onClick={resetInternationalForm}
-                                    type="button"
-                                >
-                                    Limpar
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                                {[
-                                    ["nome", "Nome"],
-                                    ["imagem", "Imagem (URL)"],
-                                    ["pais", "Pais"],
-                                    ["cidade", "Cidade"],
-                                    ["instituicaoResponsavel", "Instituicao"],
-                                    ["tipo", "Tipo"],
-                                    ["nivelEnsino", "Nivel de ensino"],
-                                    ["faixaEtaria", "Faixa etaria"],
-                                    ["requisitosIdioma", "Requisitos de idioma"],
-                                    ["taxaAplicacao", "Taxa de aplicacao"],
-                                    ["tipoBolsa", "Tipo de bolsa"],
-                                    ["coberturaBolsa", "Cobertura da bolsa"],
-                                    ["custosExtras", "Custos extras"],
-                                    ["duracao", "Duracao"],
-                                    ["prazoInscricao", "Prazo (dd/mm/aaaa)"],
-                                    ["etapasSelecao", "Etapas de selecao"],
-                                    ["processoInscricao", "Processo de inscricao"],
-                                    ["linkOficial", "Link oficial"],
-                                    ["contato", "Contato"],
-                                ].map(([key, label]) => (
-                                    <label className="flex flex-col gap-1" key={key}>
-                                        <span className="text-slate-300 text-sm">{label}</span>
-                                        <input
-                                            className="rounded-md border border-slate-700 bg-slate-950 p-2 text-sm"
-                                            onChange={(e) =>
-                                                handleInternationalChange(
-                                                    key as keyof InternationalOpportunityInput,
-                                                    e.target.value
-                                                )
-                                            }
-                                            value={internationalForm[key as keyof InternationalOpportunityInput]}
-                                        />
-                                    </label>
-                                ))}
-
-                                <label className="md:col-span-2 flex flex-col gap-1">
-                                    <span className="text-slate-300 text-sm">Descricao</span>
-                                    <textarea
-                                        className="min-h-24 rounded-md border border-slate-700 bg-slate-950 p-2 text-sm"
-                                        onChange={(e) => handleInternationalChange("descricao", e.target.value)}
-                                        value={internationalForm.descricao}
-                                    />
-                                </label>
-
-                                <label className="md:col-span-2 flex flex-col gap-1">
-                                    <span className="text-slate-300 text-sm">Requisitos especificos</span>
-                                    <textarea
-                                        className="min-h-24 rounded-md border border-slate-700 bg-slate-950 p-2 text-sm"
-                                        onChange={(e) =>
-                                            handleInternationalChange("requisitosEspecificos", e.target.value)
-                                        }
-                                        value={internationalForm.requisitosEspecificos}
-                                    />
-                                </label>
-                            </div>
-
-                            <button
-                                className="mt-4 rounded-lg bg-blue-500 px-4 py-2 font-semibold text-white"
-                                onClick={handleSaveInternational}
-                                type="button"
-                            >
-                                <span className="inline-flex items-center gap-2">
-                                    <FaPlus /> {editingInternationalId ? "Atualizar" : "Criar"}
-                                </span>
-                            </button>
-                        </section>
+                        <AdminOpportunityForm
+                            accentColor="blue"
+                            editingId={editingInternationalId}
+                            fields={INTERNATIONAL_FIELDS}
+                            formData={internationalForm as unknown as Record<string, string>}
+                            formMode={formMode}
+                            jsonInput={jsonInput}
+                            onFormChange={(key, value) =>
+                                handleInternationalChange(
+                                    key as keyof InternationalOpportunityInput,
+                                    value
+                                )
+                            }
+                            onJsonInputChange={setJsonInput}
+                            onReset={handleResetInternational}
+                            onSave={handleSaveInternational}
+                            onSaveText={handleSaveTextInternational}
+                            setFormMode={setFormMode}
+                            textareaFields={INTERNATIONAL_TEXTAREA_FIELDS}
+                            title="Nova Oportunidade"
+                        />
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                        <section className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-                            <h2 className="mb-3 font-bold text-amber-500 text-xl">Registros</h2>
-                            <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
-                                {nationalList.map((item) => (
-                                    <div className="rounded-lg border border-slate-800 bg-slate-950 p-3" key={item.id}>
-                                        <p className="font-semibold text-white">{item.nome}</p>
-                                        <p className="text-sm text-slate-400">{item.cidadeEstado}</p>
-                                        <div className="mt-2 flex gap-2">
-                                            <button
-                                                className="rounded-md bg-slate-800 px-3 py-1 text-sm"
-                                                onClick={() => handleEditNational(item)}
-                                                type="button"
-                                            >
-                                                <span className="inline-flex items-center gap-2">
-                                                    <FaEdit /> Editar
-                                                </span>
-                                            </button>
-                                            <button
-                                                className="rounded-md bg-red-700 px-3 py-1 text-sm text-white"
-                                                onClick={() => handleDeleteNational(item.id)}
-                                                type="button"
-                                            >
-                                                <span className="inline-flex items-center gap-2">
-                                                    <FaTrash /> Excluir
-                                                </span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
+                        <AdminRecordsList
+                            accentColor="amber"
+                            items={nationalList.map((item) => ({
+                                id: item.id,
+                                name: item.nome,
+                                subtitle: item.cidadeEstado,
+                            }))}
+                            onDelete={handleDeleteNational}
+                            onEdit={(id) => {
+                                const item = nationalList.find((i) => i.id === id)
+                                if (item) {
+                                    handleEditNational(item)
+                                }
+                            }}
+                            title="Registros"
+                        />
 
-                        <section className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-                            <div className="mb-3 flex items-center justify-between">
-                                <h2 className="font-bold text-amber-500 text-xl">
-                                    {editingNationalId ? "Editar Oportunidade" : "Nova Oportunidade"}
-                                </h2>
-                                <button
-                                    className="rounded-md bg-slate-800 px-3 py-1 text-sm"
-                                    onClick={resetNationalForm}
-                                    type="button"
-                                >
-                                    Limpar
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                                {[
-                                    ["nome", "Nome"],
-                                    ["imagem", "Imagem (URL)"],
-                                    ["pais", "Pais"],
-                                    ["tipo", "Tipo"],
-                                    ["nivelEnsino", "Nivel de ensino"],
-                                    ["modalidade", "Modalidade"],
-                                    ["prazoInscricao", "Prazo (dd/mm/aaaa)"],
-                                    ["duracao", "Duracao"],
-                                    ["cidadeEstado", "Cidade/Estado"],
-                                    ["faixaEtaria", "Faixa etaria"],
-                                    ["instituicaoResponsavel", "Instituicao"],
-                                    ["taxaAplicacao", "Taxa de aplicacao"],
-                                    ["beneficios", "Beneficios"],
-                                    ["custos", "Custos"],
-                                    ["custosExtras", "Custos extras"],
-                                    ["etapasSelecao", "Etapas de selecao"],
-                                    ["linkOficial", "Link oficial"],
-                                    ["contato", "Contato"],
-                                ].map(([key, label]) => (
-                                    <label className="flex flex-col gap-1" key={key}>
-                                        <span className="text-slate-300 text-sm">{label}</span>
-                                        <input
-                                            className="rounded-md border border-slate-700 bg-slate-950 p-2 text-sm"
-                                            onChange={(e) =>
-                                                handleNationalChange(
-                                                    key as keyof NationalFormState,
-                                                    e.target.value
-                                                )
-                                            }
-                                            value={nationalForm[key as keyof NationalFormState]}
-                                        />
-                                    </label>
-                                ))}
-
-                                <label className="md:col-span-2 flex flex-col gap-1">
-                                    <span className="text-slate-300 text-sm">Sobre</span>
-                                    <textarea
-                                        className="min-h-24 rounded-md border border-slate-700 bg-slate-950 p-2 text-sm"
-                                        onChange={(e) => handleNationalChange("sobre", e.target.value)}
-                                        value={nationalForm.sobre}
-                                    />
-                                </label>
-
-                                <label className="md:col-span-2 flex flex-col gap-1">
-                                    <span className="text-slate-300 text-sm">Descricao breve</span>
-                                    <textarea
-                                        className="min-h-24 rounded-md border border-slate-700 bg-slate-950 p-2 text-sm"
-                                        onChange={(e) => handleNationalChange("descricaoBreve", e.target.value)}
-                                        value={nationalForm.descricaoBreve}
-                                    />
-                                </label>
-
-                                <label className="md:col-span-2 flex flex-col gap-1">
-                                    <span className="text-slate-300 text-sm">Requisitos</span>
-                                    <textarea
-                                        className="min-h-24 rounded-md border border-slate-700 bg-slate-950 p-2 text-sm"
-                                        onChange={(e) => handleNationalChange("requisitos", e.target.value)}
-                                        value={nationalForm.requisitos}
-                                    />
-                                </label>
-
-                                <label className="md:col-span-2 flex flex-col gap-1">
-                                    <span className="text-slate-300 text-sm">
-                                        Requisitos especificos (um por linha)
-                                    </span>
-                                    <textarea
-                                        className="min-h-24 rounded-md border border-slate-700 bg-slate-950 p-2 text-sm"
-                                        onChange={(e) =>
-                                            handleNationalChange("requisitosEspecificos", e.target.value)
-                                        }
-                                        value={nationalForm.requisitosEspecificos}
-                                    />
-                                </label>
-                            </div>
-
-                            <button
-                                className="mt-4 rounded-lg bg-amber-500 px-4 py-2 font-semibold text-black"
-                                onClick={handleSaveNational}
-                                type="button"
-                            >
-                                <span className="inline-flex items-center gap-2">
-                                    <FaPlus /> {editingNationalId ? "Atualizar" : "Criar"}
-                                </span>
-                            </button>
-                        </section>
+                        <AdminOpportunityForm
+                            accentColor="amber"
+                            editingId={editingNationalId}
+                            fields={NATIONAL_FIELDS}
+                            formData={nationalForm as unknown as Record<string, string>}
+                            formMode={formMode}
+                            jsonInput={jsonInput}
+                            onFormChange={(key, value) =>
+                                handleNationalChange(key as keyof typeof nationalForm, value)
+                            }
+                            onJsonInputChange={setJsonInput}
+                            onReset={handleResetNational}
+                            onSave={handleSaveNational}
+                            onSaveText={handleSaveTextNational}
+                            setFormMode={setFormMode}
+                            textareaFields={NATIONAL_TEXTAREA_FIELDS}
+                            title="Nova Oportunidade"
+                        />
                     </div>
                 )}
             </div>

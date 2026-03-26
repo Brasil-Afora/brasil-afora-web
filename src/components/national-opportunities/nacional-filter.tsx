@@ -31,7 +31,7 @@ const tiposProgramaOptions = [
 ]
 
 const taxaAplicacaoOptions = ["Gratuito", "Pago"].sort()
-const modalidadeOptions = ["Presencial", "Online"]
+const modalidadeOptions = ["Presencial", "Online", "Híbrido"]
 
 const NacionalFilter = ({
   filtros,

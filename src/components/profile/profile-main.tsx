@@ -1,5 +1,10 @@
-import { useEffect, useState } from "react"
-import useLocalStorage from "../../hooks/use-local-storage"
+import { useCallback, useEffect, useState } from "react"
+import {
+  getInternationalFavorites,
+  getNationalFavorites,
+  removeInternationalFavorite,
+  removeNationalFavorite,
+} from "../../lib/opportunities-api"
 import ProfileConfirmationPopup from "./profile-confirmation-popup"
 import ProfileOpportunities from "./profile-opportunities"
 import type { FavoriteOpportunity } from "./types"
@@ -10,14 +15,17 @@ interface PopupState {
 }
 
 interface ConfirmationState {
+  categoria: "internacional" | "nacional"
   detalhePath: string
+  id: string
   name: string
 }
 
 const ProfileMain = () => {
-  const [favoriteOpportunities, setFavoriteOpportunities] = useLocalStorage<
+  const [favoriteOpportunities, setFavoriteOpportunities] = useState<
     FavoriteOpportunity[]
-  >("favorites", [])
+  >([])
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"favorites">("favorites")
   const [confirmationPopup, setConfirmationPopup] =
     useState<ConfirmationState | null>(null)
@@ -26,33 +34,50 @@ const ProfileMain = () => {
     message: "",
   })
 
-  useEffect(() => {
-    setFavoriteOpportunities((prev) =>
-      prev.map((fav) => {
-        const favoriteId = String(fav.id)
-        if (fav.detalhePath && fav.categoria) {
-          return {
-            ...fav,
-            id: favoriteId,
-          }
-        }
+  const loadFavorites = useCallback(async () => {
+    try {
+      setLoading(true)
+      const [international, national] = await Promise.all([
+        getInternationalFavorites(),
+        getNationalFavorites(),
+      ])
 
-        const categoria = fav.detalhePath?.includes("/nacionais/")
-          ? "nacional"
-          : "internacional"
+      const internationalFavorites: FavoriteOpportunity[] = international.map(
+        (op) => ({
+          id: op.id,
+          nome: op.nome,
+          imagem: op.imagem,
+          pais: op.pais,
+          prazoInscricao: op.prazoInscricao,
+          categoria: "internacional" as const,
+          detalhePath: `/oportunidades/internacionais/${op.id}`,
+        })
+      )
 
-        return {
-          ...fav,
-          id: favoriteId,
-          categoria,
-          detalhePath:
-            categoria === "nacional"
-              ? `/oportunidades/nacionais/${favoriteId}`
-              : `/oportunidades/internacionais/${favoriteId}`,
-        }
+      const nationalFavorites: FavoriteOpportunity[] = national.map((op) => ({
+        id: op.id,
+        nome: op.nome,
+        imagem: op.imagem,
+        pais: op.pais,
+        prazoInscricao: op.prazoInscricao,
+        categoria: "nacional" as const,
+        detalhePath: `/oportunidades/nacionais/${op.id}`,
+      }))
+
+      setFavoriteOpportunities([...internationalFavorites, ...nationalFavorites])
+    } catch {
+      setPopup({
+        visible: true,
+        message: "Erro ao carregar favoritos.",
       })
-    )
-  }, [setFavoriteOpportunities])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadFavorites()
+  }, [loadFavorites])
 
   useEffect(() => {
     if (popup.visible) {
@@ -63,20 +88,41 @@ const ProfileMain = () => {
     }
   }, [popup.visible])
 
-  const handleRemoveFromList = (detalhePath: string, name: string) => {
-    setConfirmationPopup({ detalhePath, name })
+  const handleRemoveFromList = (
+    detalhePath: string,
+    name: string,
+    id: string,
+    categoria: "internacional" | "nacional"
+  ) => {
+    setConfirmationPopup({ detalhePath, name, id, categoria })
   }
 
-  const handleConfirmRemove = () => {
+  const handleConfirmRemove = async () => {
     if (!confirmationPopup) {
       return
     }
-    const { detalhePath, name } = confirmationPopup
-    setFavoriteOpportunities(
-      favoriteOpportunities.filter((fav) => fav.detalhePath !== detalhePath)
-    )
-    setPopup({ visible: true, message: `"${name}" removido(a) com sucesso!` })
+    const { id, name, categoria } = confirmationPopup
+
+    try {
+      if (categoria === "internacional") {
+        await removeInternationalFavorite(id)
+      } else {
+        await removeNationalFavorite(id)
+      }
+      setFavoriteOpportunities((prev) => prev.filter((fav) => fav.id !== id))
+      setPopup({ visible: true, message: `"${name}" removido(a) com sucesso!` })
+    } catch {
+      setPopup({ visible: true, message: "Erro ao remover favorito." })
+    }
     setConfirmationPopup(null)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+        <p className="text-white/60 text-xl">Carregando favoritos...</p>
+      </div>
+    )
   }
 
   return (

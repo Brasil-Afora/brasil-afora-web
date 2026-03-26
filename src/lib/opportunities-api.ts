@@ -29,7 +29,6 @@ export interface NationalOpportunity {
     contato: string
     custos: string
     custosExtras: string
-    descricaoBreve: string
     duracao: string
     etapasSelecao: string
     faixaEtaria: string
@@ -37,7 +36,7 @@ export interface NationalOpportunity {
     imagem: string
     instituicaoResponsavel: string
     linkOficial: string
-    modalidade: "Online" | "Presencial"
+    modalidade: "Online" | "Presencial" | "Híbrido"
     nivelEnsino: string
     nome: string
     pais: string
@@ -214,8 +213,16 @@ const mapInternationalOpportunity = (
 
 const normalizeModality = (
     modality: string | undefined
-): "Online" | "Presencial" => {
-    if ((modality ?? "").toLowerCase().includes("online")) {
+): "Online" | "Presencial" | "Híbrido" => {
+    if (!modality) return "Presencial"
+
+    const modalityLower = modality.toLowerCase()
+
+    if (modalityLower.includes("hibrido") || modalityLower.includes("híbrido") || modalityLower.includes("misto")) {
+        return "Híbrido"
+    }
+
+    if (modalityLower.includes("online") || modalityLower.includes("remoto") || modalityLower.includes("ead")) {
         return "Online"
     }
 
@@ -234,7 +241,6 @@ const mapNationalOpportunity = (
     modalidade: normalizeModality(item.modality),
     prazoInscricao: toDateString(item.applicationDeadline),
     sobre: item.about ?? "",
-    descricaoBreve: item.shortDescription ?? "",
     duracao: item.duration ?? "",
     cidadeEstado: item.cityState ?? "",
     faixaEtaria: item.ageRange ?? "",
@@ -283,7 +289,7 @@ const mapNationalInputToApi = (payload: NationalOpportunityInput) => ({
     modality: payload.modalidade,
     applicationDeadline: toApiDateString(payload.prazoInscricao),
     about: payload.sobre,
-    shortDescription: payload.descricaoBreve,
+    shortDescription: payload.sobre,
     duration: payload.duracao,
     cityState: payload.cidadeEstado,
     ageRange: payload.faixaEtaria,
@@ -432,4 +438,38 @@ export const updateNationalOpportunity = async (
 
 export const deleteNationalOpportunity = async (id: string): Promise<void> => {
     await sendToApi(`/national-opportunities/${id}`, "DELETE")
+}
+
+export const getInternationalFavorites = async (): Promise<
+    InternationalOpportunity[]
+> => {
+    const data = await fetchFromApi<InternationalOpportunitiesResponse>(
+        "/opportunities/favorites"
+    )
+
+    return (data.opportunities ?? []).map(mapInternationalOpportunity)
+}
+
+export const addInternationalFavorite = async (id: string): Promise<void> => {
+    await sendToApi(`/opportunities/${id}/favorite`, "POST")
+}
+
+export const removeInternationalFavorite = async (id: string): Promise<void> => {
+    await sendToApi(`/opportunities/${id}/favorite`, "DELETE")
+}
+
+export const getNationalFavorites = async (): Promise<NationalOpportunity[]> => {
+    const data = await fetchFromApi<NationalOpportunitiesResponse>(
+        "/national-opportunities/favorites"
+    )
+
+    return (data.nationalOpportunities ?? []).map(mapNationalOpportunity)
+}
+
+export const addNationalFavorite = async (id: string): Promise<void> => {
+    await sendToApi(`/national-opportunities/${id}/favorite`, "POST")
+}
+
+export const removeNationalFavorite = async (id: string): Promise<void> => {
+    await sendToApi(`/national-opportunities/${id}/favorite`, "DELETE")
 }

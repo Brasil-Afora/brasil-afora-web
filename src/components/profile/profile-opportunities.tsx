@@ -82,7 +82,12 @@ const getDaysUntilDeadline = (deadlineString: string): number | null => {
 
 interface ProfileOpportunitiesProps {
   favoriteOpportunities: FavoriteOpportunity[]
-  handleRemoveFromList: (detalhePath: string, name: string) => void
+  handleRemoveFromList: (
+    detalhePath: string,
+    name: string,
+    id: string,
+    categoria: "internacional" | "nacional"
+  ) => void
 }
 
 const ProfileOpportunities = ({
@@ -404,7 +409,9 @@ const ProfileOpportunities = ({
                         onClick={() =>
                           handleRemoveFromList(
                             oportunidade.detalhePath,
-                            oportunidade.nome
+                            oportunidade.nome,
+                            oportunidade.id,
+                            oportunidade.categoria
                           )
                         }
                         title="Remover dos favoritos"

@@ -2,9 +2,15 @@
 
 @theme {
   --font-inter: "Inter", var(--default-font-family);
+  --font-blackout: "Bebas Neue", var(--default-font-family);
   --background-image-dark-gradient: linear-gradient(to bottom,
       #000000,
       #040923ff);
+}
+
+.font-blackout {
+  font-family: "Bebas Neue", var(--default-font-family);
+  letter-spacing: 0.05em;
 }
 
 .scrollbar-hide {

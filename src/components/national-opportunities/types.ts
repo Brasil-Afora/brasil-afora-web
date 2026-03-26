@@ -4,7 +4,6 @@ export interface Opportunity {
   contato: string
   custos: string
   custosExtras: string
-  descricaoBreve: string
   duracao: string
   etapasSelecao: string
   faixaEtaria: string
@@ -12,7 +11,7 @@ export interface Opportunity {
   imagem: string
   instituicaoResponsavel: string
   linkOficial: string
-  modalidade: "Online" | "Presencial"
+  modalidade: "Online" | "Presencial" | "Híbrido"
   nivelEnsino: string
   nome: string
   pais: string

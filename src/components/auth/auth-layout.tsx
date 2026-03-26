@@ -23,14 +23,14 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
           <div className="relative z-10 flex flex-col items-center space-y-6 px-12 text-center">
             <Link className="flex items-center space-x-3" to="/">
               <img
-                alt="Logo do Passaporte Global"
-                className="h-16 w-auto object-contain"
-                height={64}
+                alt="Logo do Brasil Afora"
+                className="h-20 w-auto object-contain"
+                height={80}
                 src="/logo.png"
-                width={64}
+                width={80}
               />
               <span className="font-bold text-2xl text-white">
-                Passaporte Global
+                Brasil Afora
               </span>
             </Link>
 
@@ -67,13 +67,13 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
             {/* Mobile logo */}
             <Link className="mb-6 flex items-center space-x-2 lg:hidden" to="/">
               <img
-                alt="Logo do Passaporte Global"
-                className="h-8 w-auto object-contain"
-                height={32}
+                alt="Logo do Brasil Afora"
+                className="h-12 w-auto object-contain"
+                height={48}
                 src="/logo.png"
-                width={32}
+                width={48}
               />
-              <span className="font-bold text-white">Passaporte Global</span>
+              <span className="font-bold text-white">Brasil Afora</span>
             </Link>
 
             <h2 className="font-bold text-2xl text-white">{title}</h2>

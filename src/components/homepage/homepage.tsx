@@ -5,10 +5,8 @@ import {
   FaEnvelope,
   FaGlobeAmericas,
   FaGraduationCap,
-  FaInstagram,
   FaLockOpen,
   FaMapMarkerAlt,
-  FaPhone,
   FaTrophy,
 } from "react-icons/fa"
 import { Link } from "react-router-dom"
@@ -139,7 +137,7 @@ const Homepage = () => {
         <div className="absolute inset-0 z-0 bg-linear-to-t from-slate-950 via-transparent to-transparent opacity-80" />
         <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center md:px-8">
           <p className="mb-5 font-medium text-sm text-white/50 uppercase tracking-[0.2em]">
-            Passaporte Global
+            Brasil Afora
           </p>
           <h1 className="mb-6 max-w-4xl font-extrabold text-5xl text-white leading-tight tracking-tight md:text-7xl">
             Sua jornada acadêmica não tem fronteiras
@@ -184,7 +182,7 @@ const Homepage = () => {
           <h2
             className={`mb-3 font-extrabold text-4xl text-white md:text-5xl ${baseTransition} ${whyVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
           >
-            Por Que Escolher o Passaporte Global?
+            Por Que Escolher Brasil Afora?
           </h2>
           <p
             className={`mx-auto mb-14 max-w-xl text-base text-white/60 ${baseTransition} ${whyVisible ? "translate-y-0 opacity-100 delay-200" : "translate-y-10 opacity-0"}`}
@@ -217,93 +215,55 @@ const Homepage = () => {
       </div>
       {/* Contact Section */}
       <div className="bg-slate-900 px-4 py-24" ref={contactRef}>
-        <div className="container mx-auto grid grid-cols-1 items-center gap-12 md:grid-cols-2">
-          <div
-            className={`text-center md:text-left ${baseTransition} ${contactVisibleItems.includes(0) ? "translate-x-0 opacity-100" : "-translate-x-10 opacity-0"}`}
-          >
-            <h2 className="mb-4 font-extrabold text-4xl text-white">
-              Fale Conosco
-            </h2>
-            <p className="mb-8 text-lg text-white">
-              Tem alguma sugestão, crítica ou dúvida? Gostaríamos muito de ouvir
-              você. Conecte-se conosco através dos nossos canais ou envie uma
-              mensagem direta.
-            </p>
-            <ul className="space-y-4 text-center text-white md:text-left">
-              <li className="flex items-center justify-center text-lg md:justify-start">
-                <FaEnvelope className="mr-3 text-amber-500" size={24} />
-                <a
-                  className="transition-colors hover:text-amber-500"
-                  href="mailto:contato@passaporteglobal.com"
-                >
-                  contato@passaporteglobal.com
-                </a>
-              </li>
-              <li className="flex items-center justify-center text-lg md:justify-start">
-                <FaPhone className="mr-3 text-amber-500" size={24} />
-                <a
-                  className="transition-colors hover:text-amber-500"
-                  href="tel:+5511999999999"
-                >
-                  +55 (11) 99999-9999
-                </a>
-              </li>
-              <li className="flex items-center justify-center text-lg md:justify-start">
-                <FaInstagram className="mr-3 text-amber-500" size={24} />
-                <a
-                  className="transition-colors hover:text-amber-500"
-                  href="https://instagram.com/passaporteglobal"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  @passaporteglobal
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div
-            className={`rounded-xl bg-slate-950 p-8 shadow-lg ${baseTransition} ${contactVisibleItems.includes(1) ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"}`}
-          >
-            <h3 className="mb-4 text-center font-bold text-2xl text-white">
-              Envie uma Mensagem
-            </h3>
-            <form className="space-y-4">
-              <div>
-                <input
-                  className="w-full rounded-md border-transparent bg-slate-800 px-4 py-3 text-sm text-white shadow-sm focus:border-amber-500 focus:ring-amber-500"
-                  id="name"
-                  name="name"
-                  placeholder="Seu nome"
-                  type="text"
-                />
+        <div className="container mx-auto">
+          <h2 className="mb-12 text-center font-extrabold text-4xl text-white md:text-5xl">
+            Fale Conosco
+          </h2>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            {/* Contact Section */}
+            <div
+              className={`rounded-xl bg-slate-950 p-8 shadow-lg ${baseTransition} ${contactVisibleItems.includes(0) ? "translate-x-0 opacity-100" : "-translate-x-10 opacity-0"}`}
+            >
+              <h3 className="mb-4 font-bold text-2xl text-white">
+                Entrar em Contato
+              </h3>
+              <p className="mb-6 text-base text-white/70">
+                Tem alguma sugestão, crítica ou dúvida? Gostaríamos muito de ouvir você.
+                Entre em contato conosco através do e-mail.
+              </p>
+              <div className="flex flex-col items-start space-y-4">
+                <div className="flex items-center text-lg text-white">
+                  <FaEnvelope className="mr-3 text-amber-500" size={24} />
+                  <a
+                    className="transition-colors hover:text-amber-500"
+                    href="mailto:passaporteglobalbr@gmail.com"
+                  >
+                    passaporteglobalbr@gmail.com
+                  </a>
+                </div>
               </div>
-              <div>
-                <input
-                  className="w-full rounded-md border-transparent bg-slate-800 px-4 py-3 text-sm text-white shadow-sm focus:border-amber-500 focus:ring-amber-500"
-                  id="email"
-                  name="email"
-                  placeholder="Seu e-mail"
-                  type="email"
-                />
-              </div>
-              <div>
-                <textarea
-                  className="w-full rounded-md border-transparent bg-slate-800 px-4 py-3 text-sm text-white shadow-sm focus:border-amber-500 focus:ring-amber-500"
-                  id="message"
-                  name="message"
-                  placeholder="Escreva sua mensagem aqui..."
-                  rows={3}
-                />
-              </div>
-              <div>
-                <button
-                  className="inline-block w-full transform rounded-full bg-amber-500 px-6 py-3 font-bold text-slate-950 transition-colors duration-300 hover:scale-105 hover:bg-amber-600"
-                  type="submit"
-                >
-                  Enviar Mensagem
-                </button>
-              </div>
-            </form>
+            </div>
+
+            {/* Submit Opportunity Section */}
+            <div
+              className={`rounded-xl bg-slate-950 p-8 shadow-lg ${baseTransition} ${contactVisibleItems.includes(1) ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"}`}
+            >
+              <h3 className="mb-4 font-bold text-2xl text-white">
+                Enviar Oportunidade
+              </h3>
+              <p className="mb-6 text-base text-white/70">
+                Encontrou uma oportunidade interessante? Compartilhe conosco!
+                Preencha o formulário com os detalhes.
+              </p>
+              <a
+                href="https://forms.gle/dJrD1eg4y3VHGFap9"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block w-full rounded-full bg-amber-500 px-6 py-3 font-bold text-slate-950 text-center transition-colors duration-300 hover:bg-amber-600"
+              >
+                Abrir Formulário
+              </a>
+            </div>
           </div>
         </div>
       </div>

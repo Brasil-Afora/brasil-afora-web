@@ -17,10 +17,13 @@ import {
   FaUser,
 } from "react-icons/fa"
 import { useNavigate, useParams } from "react-router-dom"
-import useLocalStorage from "../../hooks/use-local-storage"
-import { apiFetch } from "../../lib/api"
+import {
+  addNationalFavorite,
+  getNationalFavorites,
+  getNationalOpportunityById,
+  removeNationalFavorite,
+} from "../../lib/opportunities-api"
 import { getTimeRemaining, getTimeRemainingBadgeClass } from "../../lib/date-utils"
-import type { FavoriteOpportunity } from "../profile/types"
 import NacionalConfirmationPopup from "./nacional-confirmation-popup"
 import type { Opportunity } from "./types"
 
@@ -48,11 +51,13 @@ const NacionalInfo = () => {
 
     const fetchData = async () => {
       try {
-        const result = await apiFetch<Opportunity>(
-          `/oportunidades/nacionais/${id}`
-        )
+        const result = await getNationalOpportunityById(id)
         if (!cancelled) {
-          setOportunidade(result)
+          if (result) {
+            setOportunidade(result)
+          } else {
+            setFetchError("Oportunidade não encontrada.")
+          }
         }
       } catch (err) {
         if (!cancelled) {
@@ -76,10 +81,7 @@ const NacionalInfo = () => {
     }
   }, [id])
 
-  const [favorites, setFavorites] = useLocalStorage<FavoriteOpportunity[]>(
-    "favorites",
-    []
-  )
+  const [isFavorited, setIsFavorited] = useState(false)
   const [popup, setPopup] = useState<PopupState>({
     visible: false,
     message: "",
@@ -89,11 +91,29 @@ const NacionalInfo = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("sobre")
   const [heroImageFailed, setHeroImageFailed] = useState(false)
 
-  const isFavorited = favorites.some(
-    (fav) =>
-      fav.categoria === "nacional" &&
-      fav.id === (oportunidade ? oportunidade.id : null)
-  )
+  useEffect(() => {
+    if (!id) {
+      return
+    }
+    let cancelled = false
+
+    const checkFavoriteStatus = async () => {
+      try {
+        const favorites = await getNationalFavorites()
+        if (!cancelled) {
+          setIsFavorited(favorites.some((fav) => fav.id === id))
+        }
+      } catch {
+        // Ignore errors when checking favorite status
+      }
+    }
+
+    checkFavoriteStatus()
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
@@ -112,47 +132,44 @@ const NacionalInfo = () => {
     setHeroImageFailed(false)
   }, [oportunidade?.imagem])
 
-  const handleFavoriteToggle = () => {
+  const handleFavoriteToggle = async () => {
     if (!oportunidade) {
       return
     }
     if (isFavorited) {
       setConfirmationOpportunity(oportunidade)
     } else {
-      setFavorites([
-        ...favorites,
-        {
-          id: oportunidade.id,
-          nome: oportunidade.nome,
-          imagem: oportunidade.imagem,
-          pais: oportunidade.pais,
-          prazoInscricao: oportunidade.prazoInscricao,
-          categoria: "nacional",
-          detalhePath: `/oportunidades/nacionais/${oportunidade.id}`,
-        },
-      ])
-      setPopup({
-        visible: true,
-        message: "Oportunidade adicionada aos seus Favoritos!",
-      })
+      try {
+        await addNationalFavorite(oportunidade.id)
+        setIsFavorited(true)
+        setPopup({
+          visible: true,
+          message: "Oportunidade adicionada aos seus Favoritos!",
+        })
+      } catch {
+        setPopup({
+          visible: true,
+          message: "Erro ao adicionar aos favoritos.",
+        })
+      }
     }
   }
 
-  const handleConfirmRemove = () => {
+  const handleConfirmRemove = async () => {
     if (confirmationOpportunity) {
-      setFavorites(
-        favorites.filter(
-          (fav) =>
-            !(
-              fav.categoria === "nacional" &&
-              fav.id === confirmationOpportunity.id
-            )
-        )
-      )
-      setPopup({
-        visible: true,
-        message: "Oportunidade removida dos seus Favoritos.",
-      })
+      try {
+        await removeNationalFavorite(confirmationOpportunity.id)
+        setIsFavorited(false)
+        setPopup({
+          visible: true,
+          message: "Oportunidade removida dos seus Favoritos.",
+        })
+      } catch {
+        setPopup({
+          visible: true,
+          message: "Erro ao remover dos favoritos.",
+        })
+      }
     }
     setConfirmationOpportunity(null)
   }
@@ -209,9 +226,6 @@ const NacionalInfo = () => {
             <h2 className="mb-4 font-bold text-2xl text-amber-500">Sobre</h2>
             <p className="mb-6 text-base text-white leading-relaxed">
               {oportunidade.sobre || "N/A"}
-            </p>
-            <p className="mb-6 text-base text-white leading-relaxed">
-              {oportunidade.descricaoBreve || "N/A"}
             </p>
             <div className="grid grid-cols-1 gap-6 text-base md:grid-cols-2">
               {[

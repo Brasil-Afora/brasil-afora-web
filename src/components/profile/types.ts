@@ -1,7 +1,7 @@
 export interface FavoriteOpportunity {
   categoria: "internacional" | "nacional"
   detalhePath: string
-  id: number
+  id: string
   imagem: string
   nome: string
   pais: string
