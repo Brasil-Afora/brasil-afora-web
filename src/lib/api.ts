@@ -1,7 +1,9 @@
-const BASE_URL = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:3333"
+import { buildBackendUrl } from "./backend-config"
 
 export async function apiFetch<T>(path: string): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`)
+  const response = await fetch(buildBackendUrl(path), {
+    credentials: "include",
+  })
   if (!response.ok) {
     throw new Error(`API error: ${response.status} ${response.statusText}`)
   }

@@ -1,3 +1,5 @@
+import { BACKEND_BASE_URL, buildBackendUrl } from "./backend-config"
+
 export interface InternationalOpportunity {
     cidade: string
     coberturaBolsa: string
@@ -110,14 +112,7 @@ interface NationalOpportunitiesResponse {
     nationalOpportunities?: RawNationalOpportunity[]
 }
 
-const importMetaWithEnv = import.meta as ImportMeta & {
-    env?: Record<string, string | undefined>
-}
-
-const API_BASE_URL =
-    importMetaWithEnv.env?.VITE_BACKEND_URL ?? "http://localhost:3333"
-
-const API_BASE_URL_WITHOUT_TRAILING_SLASH = API_BASE_URL.replace(/\/$/, "")
+const API_BASE_URL_WITHOUT_TRAILING_SLASH = BACKEND_BASE_URL
 
 const normalizeImageUrl = (value: string | undefined): string => {
     if (!value) {
@@ -305,8 +300,18 @@ const mapNationalInputToApi = (payload: NationalOpportunityInput) => ({
     contact: payload.contato,
 })
 
+class ApiRequestError extends Error {
+    status: number
+
+    constructor(message: string, status: number) {
+        super(message)
+        this.name = "ApiRequestError"
+        this.status = status
+    }
+}
+
 const fetchFromApi = async <T>(path: string): Promise<T> => {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(buildBackendUrl(path), {
         credentials: "include",
     })
 
@@ -333,7 +338,7 @@ const sendToApi = async (
     method: "POST" | "PUT" | "DELETE",
     body?: unknown
 ): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(buildBackendUrl(path), {
         method,
         credentials: "include",
         headers: {
@@ -354,7 +359,29 @@ const sendToApi = async (
             // Keep default message when backend error body is not JSON.
         }
 
-        throw new Error(errorMessage)
+        throw new ApiRequestError(errorMessage, response.status)
+    }
+}
+
+const sendToApiWithFallback = async (
+    path: string,
+    fallbackPath: string,
+    method: "POST" | "PUT" | "DELETE",
+    body?: unknown
+): Promise<void> => {
+    try {
+        await sendToApi(path, method, body)
+    } catch (error) {
+        if (
+            error instanceof ApiRequestError &&
+            error.status === 404 &&
+            path !== fallbackPath
+        ) {
+            await sendToApi(fallbackPath, method, body)
+            return
+        }
+
+        throw error
     }
 }
 
@@ -418,8 +445,9 @@ export const deleteInternationalOpportunity = async (id: string): Promise<void> 
 export const createNationalOpportunity = async (
     payload: NationalOpportunityInput
 ): Promise<void> => {
-    await sendToApi(
+    await sendToApiWithFallback(
         "/national-opportunities",
+        "/opportunities",
         "POST",
         mapNationalInputToApi(payload)
     )
@@ -437,7 +465,11 @@ export const updateNationalOpportunity = async (
 }
 
 export const deleteNationalOpportunity = async (id: string): Promise<void> => {
-    await sendToApi(`/national-opportunities/${id}`, "DELETE")
+    await sendToApiWithFallback(
+        `/national-opportunities/${id}`,
+        `/opportunities/${id}`,
+        "DELETE"
+    )
 }
 
 export const getInternationalFavorites = async (): Promise<
@@ -471,5 +503,9 @@ export const addNationalFavorite = async (id: string): Promise<void> => {
 }
 
 export const removeNationalFavorite = async (id: string): Promise<void> => {
-    await sendToApi(`/national-opportunities/${id}/favorite`, "DELETE")
+    await sendToApiWithFallback(
+        `/national-opportunities/${id}/favorite`,
+        `/opportunities/${id}/favorite`,
+        "DELETE"
+    )
 }

@@ -16,7 +16,8 @@ import {
   FaTimesCircle,
   FaUser,
 } from "react-icons/fa"
-import { useNavigate, useParams } from "react-router-dom"
+import { useLocation, useNavigate, useParams } from "react-router-dom"
+import { useSession } from "../../lib/auth-client"
 import {
   addNationalFavorite,
   getNationalFavorites,
@@ -37,6 +38,8 @@ interface PopupState {
 const NacionalInfo = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const { data: session, isPending: isSessionPending } = useSession()
   const [oportunidade, setOportunidade] = useState<Opportunity | undefined>(
     undefined
   )
@@ -132,10 +135,32 @@ const NacionalInfo = () => {
     setHeroImageFailed(false)
   }, [oportunidade?.imagem])
 
+  const redirectToLogin = () => {
+    navigate("/login", { state: { from: location } })
+  }
+
+  const isUnauthorizedError = (error: unknown): boolean => {
+    if (!(error instanceof Error)) {
+      return false
+    }
+
+    const normalizedMessage = error.message.toLowerCase()
+    return (
+      normalizedMessage.includes("unauthorized") ||
+      normalizedMessage.includes("401")
+    )
+  }
+
   const handleFavoriteToggle = async () => {
     if (!oportunidade) {
       return
     }
+
+    if (!session && !isSessionPending) {
+      redirectToLogin()
+      return
+    }
+
     if (isFavorited) {
       setConfirmationOpportunity(oportunidade)
     } else {
@@ -146,7 +171,12 @@ const NacionalInfo = () => {
           visible: true,
           message: "Oportunidade adicionada aos seus Favoritos!",
         })
-      } catch {
+      } catch (error) {
+        if (isUnauthorizedError(error)) {
+          redirectToLogin()
+          return
+        }
+
         setPopup({
           visible: true,
           message: "Erro ao adicionar aos favoritos.",
@@ -164,7 +194,12 @@ const NacionalInfo = () => {
           visible: true,
           message: "Oportunidade removida dos seus Favoritos.",
         })
-      } catch {
+      } catch (error) {
+        if (isUnauthorizedError(error)) {
+          redirectToLogin()
+          return
+        }
+
         setPopup({
           visible: true,
           message: "Erro ao remover dos favoritos.",

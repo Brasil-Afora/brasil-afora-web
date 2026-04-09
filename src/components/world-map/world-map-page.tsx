@@ -302,7 +302,7 @@ const WorldMapPage = () => {
 
         <div className="px-6 py-4">
           <h2 className="mb-4 border-slate-950 border-b pb-2 font-bold text-amber-500 text-xl">
-            Oportunidades de Intercâmbio
+            Oportunidades
           </h2>
           {isLoading && (
             <p className="text-sm text-white">Carregando dados do mapa...</p>

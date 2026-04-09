@@ -27,7 +27,7 @@ const Header = () => {
   const profileButtonClass =
     "flex items-center space-x-2 text-white hover:text-amber-500 transition-colors duration-300 py-2 px-3 rounded-md"
   const profileDropdownClass =
-    "absolute top-full right-0 mt-2 w-48 bg-slate-900 rounded-lg shadow-lg py-2 border border-slate-950"
+    "absolute top-full right-0 mt-2 w-32 bg-slate-900 rounded-lg shadow-lg py-2 border border-slate-950"
 
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen((prev) => !prev)
@@ -105,10 +105,10 @@ const Header = () => {
           </span>
           <img
             alt="Logo do Brasil Afora"
-            className="h-12 w-auto object-contain"
-            height={48}
+            className="h-9 w-auto object-contain"
+            height={32}
             src="/logo.png"
-            width={48}
+            width={32}
           />
           <span className="whitespace-nowrap font-bebas font-bold text-2xl text-amber-500 sm:text-3xl">
             AFORA
@@ -121,10 +121,10 @@ const Header = () => {
         <Link className="flex items-center space-x-2" to="/">
           <img
             alt="Logo do Brasil Afora"
-            className="h-16 w-auto object-contain"
-            height={64}
+            className="h-12 w-auto object-contain"
+            height={32}
             src="/logo.png"
-            width={64}
+            width={32}
           />
           <span className="whitespace-nowrap font-bebas font-bold text-white text-xl">
             BRASIL <span className="text-amber-500">AFORA</span>

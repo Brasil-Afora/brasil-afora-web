@@ -38,11 +38,14 @@ const SignUpPage = () => {
 
     setIsLoading(true)
 
+    const verificationWaitingUrl = `${window.location.origin}/verificar-email?email=${encodeURIComponent(email)}`
+
     const { error: authError } = await signUp.email({
       name,
       email,
       password,
-      callbackURL: `${window.location.origin}/verificar-email`,
+      // After clicking the link in the inbox, send users to login instead of the verify page.
+      callbackURL: `${window.location.origin}/login?email-verificado=1`,
     })
 
     setIsLoading(false)
@@ -59,7 +62,7 @@ const SignUpPage = () => {
     setSuccess(
       "Conta criada! Verifique seu e-mail para confirmar seu cadastro."
     )
-    setTimeout(() => navigate("/verificar-email"), 2000)
+    setTimeout(() => navigate(verificationWaitingUrl), 2000)
   }
 
   const handleGoogleSignUp = async () => {

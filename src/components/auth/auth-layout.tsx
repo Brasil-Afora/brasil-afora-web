@@ -29,9 +29,6 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
                 src="/logo.png"
                 width={80}
               />
-              <span className="font-bold text-2xl text-white">
-                Brasil Afora
-              </span>
             </Link>
 
             <div className="mt-8 space-y-3">

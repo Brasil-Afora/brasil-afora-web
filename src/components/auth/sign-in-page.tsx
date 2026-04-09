@@ -1,16 +1,24 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { signIn } from "../../lib/auth-client"
 import AuthLayout from "./auth-layout"
-import { AuthButton, AuthError, AuthInput, GoogleIcon } from "./auth-ui"
+import { AuthButton, AuthError, AuthInput, AuthSuccess, GoogleIcon } from "./auth-ui"
 
 const SignInPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const emailVerified = searchParams.get("email-verificado") === "1"
+
+  const fromPath =
+    (location.state as { from?: { pathname?: string } } | null)?.from
+      ?.pathname ?? "/perfil"
+  const callbackURL = `${window.location.origin}${fromPath}`
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,17 +28,22 @@ const SignInPage = () => {
     const { error: authError } = await signIn.email({
       email,
       password,
-      callbackURL: `${window.location.origin}/perfil`,
+      callbackURL,
     })
 
     setIsLoading(false)
 
     if (authError) {
+      if (authError.code === "EMAIL_NOT_VERIFIED") {
+        navigate(`/verificar-email?email=${encodeURIComponent(email)}`)
+        return
+      }
+
       setError("E-mail ou senha incorretos. Tente novamente.")
       return
     }
 
-    navigate("/perfil")
+    navigate(fromPath)
   }
 
   const handleGoogleSignIn = async () => {
@@ -39,7 +52,7 @@ const SignInPage = () => {
 
     await signIn.social({
       provider: "google",
-      callbackURL: `${window.location.origin}/perfil`,
+      callbackURL,
     })
 
     setIsGoogleLoading(false)
@@ -70,6 +83,13 @@ const SignInPage = () => {
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
+          <AuthSuccess
+            message={
+              emailVerified
+                ? "E-mail confirmado com sucesso. Faça login para continuar."
+                : null
+            }
+          />
           <AuthError message={error} />
 
           <AuthInput

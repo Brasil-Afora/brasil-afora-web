@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
-import { Link, useSearchParams } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { authClient } from "../../lib/auth-client"
 import AuthLayout from "./auth-layout"
-import { AuthButton, AuthError, AuthSuccess } from "./auth-ui"
+import { AuthButton, AuthError, AuthInput, AuthSuccess } from "./auth-ui"
 
 const subtitles: Record<string, string> = {
   verifying: "Aguarde enquanto verificamos seu e-mail...",
@@ -15,12 +15,15 @@ const getSubtitle = (status: string) =>
   subtitles[status] ?? "Verifique sua caixa de entrada"
 
 const VerifyEmailPage = () => {
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const token = searchParams.get("token")
+  const emailFromQuery = searchParams.get("email") ?? ""
 
   const [status, setStatus] = useState<
     "verifying" | "success" | "error" | "pending"
   >(token ? "verifying" : "pending")
+  const [emailForResend, setEmailForResend] = useState(emailFromQuery)
   const [isResending, setIsResending] = useState(false)
   const [resendSuccess, setResendSuccess] = useState<string | null>(null)
   const [resendError, setResendError] = useState<string | null>(null)
@@ -35,23 +38,41 @@ const VerifyEmailPage = () => {
     })
   }, [token])
 
+  useEffect(() => {
+    if (status !== "success" || !token) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      navigate("/login?email-verificado=1", { replace: true })
+    }, 2000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [navigate, status, token])
+
   const handleResend = async () => {
     setIsResending(true)
     setResendError(null)
     setResendSuccess(null)
 
-    const session = await authClient.getSession()
-    const userEmail = session.data?.user?.email
+    let userEmail = emailForResend.trim()
 
     if (!userEmail) {
-      setResendError("Faça login para reenviar o e-mail de verificação.")
+      const session = await authClient.getSession()
+      userEmail = session.data?.user?.email ?? ""
+    }
+
+    if (!userEmail) {
+      setResendError("Informe seu e-mail para reenviar a verificação.")
       setIsResending(false)
       return
     }
 
     const { error } = await authClient.sendVerificationEmail({
       email: userEmail,
-      callbackURL: `${window.location.origin}/verificar-email`,
+      callbackURL: `${window.location.origin}/login?email-verificado=1`,
     })
 
     setIsResending(false)
@@ -113,11 +134,14 @@ const VerifyEmailPage = () => {
               E-mail verificado com sucesso! Você já pode acessar todos os
               recursos da plataforma.
             </p>
+            <p className="text-slate-400 text-sm">
+              Redirecionando para o login...
+            </p>
             <Link
               className="inline-block w-full rounded-lg bg-amber-500 px-4 py-2.5 text-center font-semibold text-slate-950 text-sm transition-colors hover:bg-amber-400"
-              to="/perfil"
+              to="/login?email-verificado=1"
             >
-              Ir para meu perfil
+              Ir para login
             </Link>
           </div>
         )}
@@ -128,6 +152,16 @@ const VerifyEmailPage = () => {
               O link de verificação é inválido ou expirou. Solicite um novo
               e-mail de verificação.
             </p>
+            <AuthInput
+              autoComplete="email"
+              id="resend-email"
+              label="E-mail para reenvio"
+              onChange={setEmailForResend}
+              placeholder="seu@email.com"
+              required
+              type="email"
+              value={emailForResend}
+            />
             <AuthError message={resendError} />
             <AuthSuccess message={resendSuccess} />
             <AuthButton
@@ -148,6 +182,16 @@ const VerifyEmailPage = () => {
                 Clique no link do e-mail para confirmar sua conta.
               </p>
             </div>
+            <AuthInput
+              autoComplete="email"
+              id="pending-email"
+              label="E-mail para reenvio"
+              onChange={setEmailForResend}
+              placeholder="seu@email.com"
+              required
+              type="email"
+              value={emailForResend}
+            />
             <AuthError message={resendError} />
             <AuthSuccess message={resendSuccess} />
             <AuthButton
