@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import {
   FaBars,
   FaEnvelope,
-  FaGlobeAmericas,
   FaSignOutAlt,
   FaTimes,
   FaUser,
@@ -73,9 +72,9 @@ const Header = () => {
   }
 
   const profileButtonClass =
-    "group flex items-center gap-2.5 rounded-full bg-transparent px-2 py-2 text-slate-100 transition-all duration-300 hover:bg-[#1a315a]/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
+    "group flex items-center gap-2.5 rounded-full bg-transparent px-3 py-2.5 text-lg text-slate-100 transition-all duration-300 hover:bg-[#1a315a]/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
   const profileDropdownClass =
-    "absolute top-full right-0 mt-3 w-80 overflow-hidden rounded-3xl border border-[#2a4267] bg-gradient-to-b from-[#1a2f54] via-[#152748] to-[#111f38] p-3 shadow-[0_24px_50px_rgba(2,6,23,0.72)]"
+    `absolute top-full right-0 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 p-3 shadow-[0_20px_45px_rgba(2,6,23,0.65)] ${isAuthenticated ? "w-80" : "w-56"}`
 
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen((prev) => {
@@ -228,15 +227,15 @@ const Header = () => {
             {isAuthenticated && session.user.image ? (
               <img
                 alt={session.user.name}
-                className="h-7 w-7 rounded-full object-cover"
-                height={28}
+                className="h-8 w-8 rounded-full object-cover"
+                height={32}
                 src={session.user.image}
-                width={28}
+                width={32}
               />
             ) : (
-              <FaUserCircle size={24} />
+              <FaUserCircle size={28} />
             )}
-            <span className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap font-semibold text-base">
+            <span className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap font-semibold text-lg">
               {isAuthenticated ? profileDisplayName : "Perfil"}
             </span>
           </Button>
@@ -245,74 +244,84 @@ const Header = () => {
             <div className={profileDropdownClass}>
               {isAuthenticated ? (
                 <>
-                  <div className="rounded-2xl border border-[#2f4974] bg-[#122441]/55 px-4 py-3">
-                    <p className="font-semibold text-slate-100 text-sm">
-                      Meu Perfil
-                    </p>
-                    <p className="mt-1 truncate text-slate-300 text-xs">
-                      {session.user.name || profileDisplayName}
-                    </p>
-                    <p className="mt-1 flex items-center gap-2 truncate text-slate-400 text-xs">
-                      <FaEnvelope className="shrink-0" size={11} />
-                      {session.user.email}
-                    </p>
+                  <div className="rounded-xl border border-slate-800 bg-slate-950 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      {session.user.image ? (
+                        <img
+                          alt={session.user.name}
+                          className="h-10 w-10 rounded-full object-cover"
+                          height={40}
+                          src={session.user.image}
+                          width={40}
+                        />
+                      ) : (
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-amber-500">
+                          <FaUserCircle size={24} />
+                        </span>
+                      )}
+
+                      <div className="min-w-0">
+                        <p className="font-semibold text-amber-500 text-xs uppercase tracking-wide">
+                          Minha Conta
+                        </p>
+                        <p className="truncate font-semibold text-slate-100 text-sm">
+                          {session.user.name || profileDisplayName}
+                        </p>
+                        <p className="mt-1 flex items-center gap-2 truncate text-slate-400 text-xs">
+                          <FaEnvelope className="shrink-0" size={11} />
+                          {session.user.email}
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="mt-2 space-y-1 rounded-2xl border border-[#2f4974]/70 bg-[#122441]/45 p-2">
+                  <div className="mt-2 space-y-2">
                     <Link
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-100 text-sm transition-colors duration-200 hover:bg-[#20385f]"
+                      className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-slate-100 text-sm transition-colors duration-200 hover:border-amber-500/40 hover:text-amber-500"
                       onClick={closeProfileMenu}
                       to="/perfil"
                     >
-                      <FaUser size={12} /> Meu Perfil
+                      <FaUser className="text-amber-500" size={12} /> Meu Perfil
                     </Link>
 
                     {isAdmin && (
                       <Link
-                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-100 text-sm transition-colors duration-200 hover:bg-[#20385f]"
+                        className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-slate-100 text-sm transition-colors duration-200 hover:border-amber-500/40 hover:text-amber-500"
                         onClick={closeProfileMenu}
                         to="/admin"
                       >
-                        <FaUser size={12} /> Painel Admin
+                        <FaUser className="text-amber-500" size={12} /> Painel Admin
                       </Link>
                     )}
 
-                    <Separator className="my-1 bg-[#2f4974]" />
+                    <Separator className="my-1 bg-slate-800" />
 
                     <Button
-                      className="flex w-full items-center justify-start gap-2 rounded-xl px-3 py-2 text-left text-red-300 text-sm transition-colors duration-200 hover:bg-red-500/10 hover:text-red-200"
+                      className="flex w-full items-center justify-start gap-2 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-left text-slate-200 text-sm transition-colors duration-200 hover:border-amber-500/40 hover:text-amber-500"
                       onClick={handleSignOut}
                       type="button"
                       variant="ghost"
                     >
-                      <FaSignOutAlt size={12} /> Sair
+                      <FaSignOutAlt className="text-amber-500" size={12} /> Sair
                     </Button>
                   </div>
                 </>
               ) : (
-                <div className="space-y-3 p-1">
-                  <div className="rounded-2xl border border-[#31507d] bg-[#152949]/70 px-4 py-4 text-center">
-                    <span className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[#08142b] text-amber-400 shadow-inner shadow-black/40">
-                      <FaGlobeAmericas size={24} />
-                    </span>
-                    <p className="font-bold text-2xl text-amber-400">Mundo & Brasil</p>
-                    <p className="mt-2 text-slate-300 text-sm">
-                      Entre para salvar oportunidades e acompanhar seu progresso.
-                    </p>
-                  </div>
-
+                <div className="space-y-2">
                   <Link
-                    className="block rounded-xl border border-amber-300/30 bg-amber-400 px-3 py-2.5 text-center font-semibold text-slate-950 text-sm transition-colors duration-200 hover:bg-amber-300"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-center font-semibold text-base text-slate-100 transition-colors duration-200 hover:border-amber-500/40 hover:text-amber-500"
                     onClick={closeProfileMenu}
                     to="/login"
                   >
+                    <FaUserCircle className="text-amber-500" size={14} />
                     Entrar
                   </Link>
                   <Link
-                    className="block rounded-xl border border-[#3a5f95]/80 bg-[#1a315a] px-3 py-2.5 text-center font-semibold text-slate-100 text-sm transition-colors duration-200 hover:bg-[#223e70]"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-center font-semibold text-base text-slate-100 transition-colors duration-200 hover:border-amber-500/40 hover:text-amber-500"
                     onClick={closeProfileMenu}
                     to="/cadastro"
                   >
+                    <FaUser className="text-amber-500" size={12} />
                     Cadastrar
                   </Link>
                 </div>
