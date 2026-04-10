@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   FaBars,
   FaEnvelope,
@@ -11,7 +11,7 @@ import {
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { signOut, useSession } from "../../lib/auth-client"
+import { getSession, signOut } from "../../lib/auth-client"
 
 const FIRST_NAME_SPLIT_REGEX = /\s+/
 
@@ -30,12 +30,15 @@ const getFirstName = (name?: string | null): string => {
   return name?.trim().split(FIRST_NAME_SPLIT_REGEX)[0] ?? ""
 }
 
+type HeaderSession = Awaited<ReturnType<typeof getSession>>["data"]
+
 const Header = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { data: session } = useSession()
+  const [session, setSession] = useState<HeaderSession>(null)
+  const [isSessionLoading, setIsSessionLoading] = useState(false)
   const isAuthenticated = !!session?.user
-  const firstName = getFirstName(session?.user.name)
+  const firstName = getFirstName(session?.user?.name)
   const profileDisplayName = firstName || "Perfil"
   const mobileAccountDisplayName = firstName || "Minha Conta"
   const isAdmin =
@@ -45,8 +48,26 @@ const Header = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
 
+  const shouldPrefetchSession =
+    location.pathname.startsWith("/perfil") || location.pathname.startsWith("/admin")
+
+  const loadSession = useCallback(async () => {
+    if (isSessionLoading) {
+      return
+    }
+
+    setIsSessionLoading(true)
+    try {
+      const response = await getSession()
+      setSession(response.data ?? null)
+    } finally {
+      setIsSessionLoading(false)
+    }
+  }, [isSessionLoading])
+
   const handleSignOut = async () => {
     await signOut()
+    setSession(null)
     closeProfileMenu()
     navigate("/login")
   }
@@ -57,7 +78,13 @@ const Header = () => {
     "absolute top-full right-0 mt-3 w-80 overflow-hidden rounded-3xl border border-[#2a4267] bg-gradient-to-b from-[#1a2f54] via-[#152748] to-[#111f38] p-3 shadow-[0_24px_50px_rgba(2,6,23,0.72)]"
 
   const toggleProfileMenu = () => {
-    setIsProfileMenuOpen((prev) => !prev)
+    setIsProfileMenuOpen((prev) => {
+      const isOpening = !prev
+      if (isOpening) {
+        void loadSession()
+      }
+      return isOpening
+    })
   }
 
   const closeProfileMenu = () => {
@@ -65,7 +92,13 @@ const Header = () => {
   }
 
   const toggleMobileMenu = () => {
-    setIsMenuOpen((prev) => !prev)
+    setIsMenuOpen((prev) => {
+      const isOpening = !prev
+      if (isOpening) {
+        void loadSession()
+      }
+      return isOpening
+    })
   }
 
   useEffect(() => {
@@ -92,6 +125,14 @@ const Header = () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
+
+  useEffect(() => {
+    if (!shouldPrefetchSession) {
+      return
+    }
+
+    void loadSession()
+  }, [loadSession, shouldPrefetchSession])
 
   const headerBgClass = getHeaderBackgroundClass(location.pathname, scrolled)
 
@@ -366,6 +407,7 @@ const Header = () => {
                     onClick={async () => {
                       toggleMobileMenu()
                       await signOut()
+                      setSession(null)
                       navigate("/login")
                     }}
                     type="button"
