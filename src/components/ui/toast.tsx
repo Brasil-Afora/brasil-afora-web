@@ -1,3 +1,6 @@
+import { useEffect, useRef } from "react"
+import { toast } from "sonner"
+
 interface ToastProps {
   message: string
   onClose: () => void
@@ -5,22 +8,35 @@ interface ToastProps {
 }
 
 const Toast = ({ visible, message, onClose }: ToastProps) => {
-  if (!visible) {
-    return null
-  }
+  const onCloseRef = useRef(onClose)
+  const lastKeyRef = useRef("")
 
-  return (
-    <div className="fixed top-4 right-4 z-50 flex animate-slideIn items-center gap-4 rounded-lg border border-slate-950 bg-slate-900 p-4 text-white shadow-lg">
-      <span>{message}</span>
-      <button
-        className="text-white hover:text-gray-200"
-        onClick={onClose}
-        type="button"
-      >
-        &times;
-      </button>
-    </div>
-  )
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
+  useEffect(() => {
+    if (!(visible && message)) {
+      return
+    }
+
+    const toastKey = `${message}-${visible}`
+    if (lastKeyRef.current === toastKey) {
+      return
+    }
+
+    lastKeyRef.current = toastKey
+
+    toast(message, {
+      action: {
+        label: "Fechar",
+        onClick: () => onCloseRef.current(),
+      },
+      onDismiss: () => onCloseRef.current(),
+    })
+  }, [visible, message])
+
+  return null
 }
 
 export default Toast

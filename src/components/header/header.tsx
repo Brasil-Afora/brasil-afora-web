@@ -1,14 +1,41 @@
 import { useEffect, useRef, useState } from "react"
-import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa"
+import {
+  FaBars,
+  FaEnvelope,
+  FaGlobeAmericas,
+  FaSignOutAlt,
+  FaTimes,
+  FaUser,
+  FaUserCircle,
+} from "react-icons/fa"
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import { signOut, useSession } from "../../lib/auth-client"
+
+const FIRST_NAME_SPLIT_REGEX = /\s+/
+
+const getHeaderBackgroundClass = (
+  pathname: string,
+  scrolled: boolean
+): string => {
+  if (pathname !== "/") {
+    return "bg-slate-950"
+  }
+
+  return scrolled ? "bg-slate-900 shadow-md" : "bg-slate-900"
+}
+
+const getFirstName = (name?: string | null): string => {
+  return name?.trim().split(FIRST_NAME_SPLIT_REGEX)[0] ?? ""
+}
 
 const Header = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const { data: session } = useSession()
   const isAuthenticated = !!session?.user
-  const firstName = session?.user.name?.trim().split(/\s+/)[0] ?? ""
+  const firstName = getFirstName(session?.user.name)
   const profileDisplayName = firstName || "Perfil"
   const mobileAccountDisplayName = firstName || "Minha Conta"
   const isAdmin =
@@ -25,9 +52,9 @@ const Header = () => {
   }
 
   const profileButtonClass =
-    "flex items-center space-x-2 text-white hover:text-amber-500 transition-colors duration-300 py-2 px-3 rounded-md"
+    "group flex items-center gap-2.5 rounded-full bg-transparent px-2 py-2 text-slate-100 transition-all duration-300 hover:bg-[#1a315a]/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
   const profileDropdownClass =
-    "absolute top-full right-0 mt-2 w-32 bg-slate-900 rounded-lg shadow-lg py-2 border border-slate-950"
+    "absolute top-full right-0 mt-3 w-80 overflow-hidden rounded-3xl border border-[#2a4267] bg-gradient-to-b from-[#1a2f54] via-[#152748] to-[#111f38] p-3 shadow-[0_24px_50px_rgba(2,6,23,0.72)]"
 
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen((prev) => !prev)
@@ -66,10 +93,7 @@ const Header = () => {
     }
   }, [])
 
-  let headerBgClass = "bg-slate-950"
-  if (location.pathname === "/") {
-    headerBgClass = scrolled ? "bg-slate-900 shadow-md" : "bg-slate-900"
-  }
+  const headerBgClass = getHeaderBackgroundClass(location.pathname, scrolled)
 
   const getNavLinkClasses = (isActive: boolean) => {
     const activeClass = isActive ? "text-amber-500" : "text-white"
@@ -89,13 +113,14 @@ const Header = () => {
       className={`sticky top-0 z-50 flex items-center justify-between px-8 py-3.5 font-bold font-inter text-lg text-white transition-colors duration-500 ${headerBgClass}`}
     >
       <div className="flex flex-1 items-center justify-between md:hidden">
-        <button
+        <Button
           className="z-10 text-white focus:outline-none"
           onClick={toggleMobileMenu}
           type="button"
+          variant="ghost"
         >
           <FaBars size={24} />
-        </button>
+        </Button>
         <Link
           className="absolute left-1/2 flex -translate-x-1/2 transform items-center space-x-1"
           to="/"
@@ -151,12 +176,13 @@ const Header = () => {
         </nav>
 
         <div className="relative" ref={profileRef}>
-          <button
+          <Button
             aria-expanded={isProfileMenuOpen}
             aria-haspopup="true"
             className={profileButtonClass}
             onClick={toggleProfileMenu}
             type="button"
+            variant="ghost"
           >
             {isAuthenticated && session.user.image ? (
               <img
@@ -169,71 +195,98 @@ const Header = () => {
             ) : (
               <FaUserCircle size={24} />
             )}
-            <span className="max-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
+            <span className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap font-semibold text-base">
               {isAuthenticated ? profileDisplayName : "Perfil"}
             </span>
-          </button>
+          </Button>
 
           {isProfileMenuOpen && (
             <div className={profileDropdownClass}>
-              <Link
-                className="block px-4 py-2 text-white transition-colors duration-300 hover:bg-slate-800"
-                onClick={closeProfileMenu}
-                to="/perfil"
-              >
-                Meu Perfil
-              </Link>
-              {isAdmin && (
-                <Link
-                  className="block px-4 py-2 text-white transition-colors duration-300 hover:bg-slate-800"
-                  onClick={closeProfileMenu}
-                  to="/admin"
-                >
-                  Painel Admin
-                </Link>
-              )}
-              <hr className="my-1 border-slate-950 border-t" />
               {isAuthenticated ? (
                 <>
-                  <p className="truncate px-4 py-1 text-slate-400 text-xs">
-                    {session.user.email}
-                  </p>
-                  <button
-                    className="block w-full px-4 py-2 text-left text-red-400 transition-colors duration-300 hover:bg-slate-800"
-                    onClick={handleSignOut}
-                    type="button"
-                  >
-                    Sair
-                  </button>
+                  <div className="rounded-2xl border border-[#2f4974] bg-[#122441]/55 px-4 py-3">
+                    <p className="font-semibold text-slate-100 text-sm">
+                      Meu Perfil
+                    </p>
+                    <p className="mt-1 truncate text-slate-300 text-xs">
+                      {session.user.name || profileDisplayName}
+                    </p>
+                    <p className="mt-1 flex items-center gap-2 truncate text-slate-400 text-xs">
+                      <FaEnvelope className="shrink-0" size={11} />
+                      {session.user.email}
+                    </p>
+                  </div>
+
+                  <div className="mt-2 space-y-1 rounded-2xl border border-[#2f4974]/70 bg-[#122441]/45 p-2">
+                    <Link
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-100 text-sm transition-colors duration-200 hover:bg-[#20385f]"
+                      onClick={closeProfileMenu}
+                      to="/perfil"
+                    >
+                      <FaUser size={12} /> Meu Perfil
+                    </Link>
+
+                    {isAdmin && (
+                      <Link
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-100 text-sm transition-colors duration-200 hover:bg-[#20385f]"
+                        onClick={closeProfileMenu}
+                        to="/admin"
+                      >
+                        <FaUser size={12} /> Painel Admin
+                      </Link>
+                    )}
+
+                    <Separator className="my-1 bg-[#2f4974]" />
+
+                    <Button
+                      className="flex w-full items-center justify-start gap-2 rounded-xl px-3 py-2 text-left text-red-300 text-sm transition-colors duration-200 hover:bg-red-500/10 hover:text-red-200"
+                      onClick={handleSignOut}
+                      type="button"
+                      variant="ghost"
+                    >
+                      <FaSignOutAlt size={12} /> Sair
+                    </Button>
+                  </div>
                 </>
               ) : (
-                <>
+                <div className="space-y-3 p-1">
+                  <div className="rounded-2xl border border-[#31507d] bg-[#152949]/70 px-4 py-4 text-center">
+                    <span className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[#08142b] text-amber-400 shadow-inner shadow-black/40">
+                      <FaGlobeAmericas size={24} />
+                    </span>
+                    <p className="font-bold text-2xl text-amber-400">Mundo & Brasil</p>
+                    <p className="mt-2 text-slate-300 text-sm">
+                      Entre para salvar oportunidades e acompanhar seu progresso.
+                    </p>
+                  </div>
+
                   <Link
-                    className="block px-4 py-2 text-white transition-colors duration-300 hover:bg-slate-800"
+                    className="block rounded-xl border border-amber-300/30 bg-amber-400 px-3 py-2.5 text-center font-semibold text-slate-950 text-sm transition-colors duration-200 hover:bg-amber-300"
                     onClick={closeProfileMenu}
                     to="/login"
                   >
                     Entrar
                   </Link>
                   <Link
-                    className="block px-4 py-2 text-white transition-colors duration-300 hover:bg-slate-800"
+                    className="block rounded-xl border border-[#3a5f95]/80 bg-[#1a315a] px-3 py-2.5 text-center font-semibold text-slate-100 text-sm transition-colors duration-200 hover:bg-[#223e70]"
                     onClick={closeProfileMenu}
                     to="/cadastro"
                   >
                     Cadastrar
                   </Link>
-                </>
+                </div>
               )}
             </div>
           )}
         </div>
       </div>
 
-      <button
+      <Button
         aria-label="Fechar menu"
-        className={`fixed inset-0 z-40 w-full bg-black bg-opacity-75 transition-opacity duration-300 md:hidden ${isMenuOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed inset-0 z-40 h-auto w-full bg-black bg-opacity-75 transition-opacity duration-300 md:hidden ${isMenuOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         onClick={toggleMobileMenu}
         type="button"
+        variant="ghost"
       />
       <div
         className={`fixed top-0 left-0 z-50 h-full w-64 transform bg-slate-900 shadow-xl transition-transform duration-500 ease-in-out md:hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
@@ -241,13 +294,14 @@ const Header = () => {
         <div className="flex h-full flex-col p-4">
           <div className="mb-6 flex items-center justify-between border-slate-800 border-b pb-4">
             <h2 className="font-bold text-amber-500 text-xl">Navegação</h2>
-            <button
+            <Button
               className="text-white hover:text-amber-500"
               onClick={toggleMobileMenu}
               type="button"
+              variant="ghost"
             >
               <FaTimes size={24} />
-            </button>
+            </Button>
           </div>
           <nav className="mt-4 flex-1">
             <ul className="space-y-4 font-bold text-white">
@@ -307,7 +361,7 @@ const Header = () => {
               )}
               {isAuthenticated ? (
                 <li>
-                  <button
+                  <Button
                     className="block w-full rounded-lg px-4 py-2 text-left text-red-400 transition-colors hover:bg-slate-800"
                     onClick={async () => {
                       toggleMobileMenu()
@@ -315,9 +369,10 @@ const Header = () => {
                       navigate("/login")
                     }}
                     type="button"
+                    variant="ghost"
                   >
                     Sair
-                  </button>
+                  </Button>
                 </li>
               ) : (
                 <>

@@ -82,7 +82,8 @@ const countryNamesPtBr: Record<string, string> = {
   Finland: "Finlândia",
   France: "França",
   "French Guiana": "Guiana Francesa",
-  "French Southern and Antarctic Lands": "Terras Austrais e Antárticas Francesas",
+  "French Southern and Antarctic Lands":
+    "Terras Austrais e Antárticas Francesas",
   Gabon: "Gabão",
   Gambia: "Gâmbia",
   Georgia: "Geórgia",
@@ -222,9 +223,7 @@ const WorldMap = ({
   onMarkerClick,
   selectedCountryCode = null,
 }: WorldMapProps) => {
-  const geoJsonLayerKey = Object.keys(exchangeData)
-    .sort()
-    .join("|")
+  const geoJsonLayerKey = Object.keys(exchangeData).sort().join("|")
 
   const [hoveredCountryCode, setHoveredCountryCode] = useState<string | null>(
     null
@@ -258,7 +257,9 @@ const WorldMap = ({
     const hasOpportunity = Boolean(exchangeData[countryCode])
     const isHovered = countryCode !== "" && hoveredCountryCode === countryCode
     const isSelected =
-      countryCode !== "" && selectedCountryCode !== null && selectedCountryCode === countryCode
+      countryCode !== "" &&
+      selectedCountryCode !== null &&
+      selectedCountryCode === countryCode
 
     if (isSelected) {
       return {

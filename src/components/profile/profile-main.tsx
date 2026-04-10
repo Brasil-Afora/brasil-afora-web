@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import {
   getInternationalFavorites,
   getNationalFavorites,
@@ -9,16 +11,27 @@ import ProfileConfirmationPopup from "./profile-confirmation-popup"
 import ProfileOpportunities from "./profile-opportunities"
 import type { FavoriteOpportunity } from "./types"
 
-interface PopupState {
-  message: string
-  visible: boolean
-}
-
 interface ConfirmationState {
   categoria: "internacional" | "nacional"
   detalhePath: string
   id: string
   name: string
+}
+
+const dedupeFavoriteOpportunities = (
+  items: FavoriteOpportunity[]
+): FavoriteOpportunity[] => {
+  const itemsById = new Map<string, FavoriteOpportunity>()
+
+  for (const item of items) {
+    const current = itemsById.get(item.id)
+
+    if (!current || current.categoria === "internacional") {
+      itemsById.set(item.id, item)
+    }
+  }
+
+  return [...itemsById.values()]
 }
 
 const ProfileMain = () => {
@@ -29,10 +42,6 @@ const ProfileMain = () => {
   const [activeTab, setActiveTab] = useState<"favorites">("favorites")
   const [confirmationPopup, setConfirmationPopup] =
     useState<ConfirmationState | null>(null)
-  const [popup, setPopup] = useState<PopupState>({
-    visible: false,
-    message: "",
-  })
 
   const loadFavorites = useCallback(async () => {
     try {
@@ -64,12 +73,14 @@ const ProfileMain = () => {
         detalhePath: `/oportunidades/nacionais/${op.id}`,
       }))
 
-      setFavoriteOpportunities([...internationalFavorites, ...nationalFavorites])
+      setFavoriteOpportunities(
+        dedupeFavoriteOpportunities([
+          ...internationalFavorites,
+          ...nationalFavorites,
+        ])
+      )
     } catch {
-      setPopup({
-        visible: true,
-        message: "Erro ao carregar favoritos.",
-      })
+      toast("Erro ao carregar favoritos.")
     } finally {
       setLoading(false)
     }
@@ -78,15 +89,6 @@ const ProfileMain = () => {
   useEffect(() => {
     loadFavorites()
   }, [loadFavorites])
-
-  useEffect(() => {
-    if (popup.visible) {
-      const timer = setTimeout(() => {
-        setPopup((prev) => ({ ...prev, visible: false }))
-      }, 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [popup.visible])
 
   const handleRemoveFromList = (
     detalhePath: string,
@@ -109,10 +111,14 @@ const ProfileMain = () => {
       } else {
         await removeNationalFavorite(id)
       }
-      setFavoriteOpportunities((prev) => prev.filter((fav) => fav.id !== id))
-      setPopup({ visible: true, message: `"${name}" removido(a) com sucesso!` })
+      setFavoriteOpportunities((prev) => {
+        return prev.filter((fav) => {
+          return !(fav.id === id && fav.categoria === categoria)
+        })
+      })
+      toast(`"${name}" removido(a) com sucesso!`)
     } catch {
-      setPopup({ visible: true, message: "Erro ao remover favorito." })
+      toast("Erro ao remover favorito.")
     }
     setConfirmationPopup(null)
   }
@@ -132,13 +138,14 @@ const ProfileMain = () => {
       </h1>
 
       <div className="mx-auto mb-8 flex w-full max-w-sm rounded-full border border-slate-950 bg-slate-900 p-1 shadow-lg">
-        <button
+        <Button
           className={`flex-1 rounded-full px-4 py-2 font-semibold text-sm transition-colors duration-200 ${activeTab === "favorites" ? "bg-amber-500 text-black" : "text-white hover:bg-slate-800"}`}
           onClick={() => setActiveTab("favorites")}
           type="button"
+          variant="ghost"
         >
           Oportunidades Salvas
-        </button>
+        </Button>
       </div>
 
       {activeTab === "favorites" && (
@@ -153,19 +160,6 @@ const ProfileMain = () => {
         onCancel={() => setConfirmationPopup(null)}
         onConfirm={handleConfirmRemove}
       />
-
-      {popup.visible && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-4 rounded-lg border border-slate-950 bg-slate-900 p-4 text-white shadow-lg">
-          <span>{popup.message}</span>
-          <button
-            className="text-white hover:text-gray-200"
-            onClick={() => setPopup((prev) => ({ ...prev, visible: false }))}
-            type="button"
-          >
-            &times;
-          </button>
-        </div>
-      )}
     </div>
   )
 }

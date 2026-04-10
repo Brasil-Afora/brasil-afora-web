@@ -8,6 +8,7 @@ import {
   FaTimes,
 } from "react-icons/fa"
 import { Link } from "react-router-dom"
+import { Button } from "@/components/ui/button"
 import useSessionStorage from "../../hooks/use-session-storage"
 import {
   getInternationalOpportunities,
@@ -136,7 +137,8 @@ const getCodigoPais = (nomePais: string): string | undefined => {
     return directMatch
   }
 
-  const normalizedWithoutExtraInfo = normalized.split(",")[0]?.trim() ?? normalized
+  const normalizedWithoutExtraInfo =
+    normalized.split(",")[0]?.trim() ?? normalized
   const secondaryMatch = countryToIso3[normalizedWithoutExtraInfo]
   if (secondaryMatch) {
     return secondaryMatch
@@ -176,7 +178,9 @@ const getOpportunityLink = (opportunity: MapOpportunity): string => {
   return `/oportunidades/internacionais/${opportunity.id}`
 }
 
-const agruparOportunidadesPorPais = (dados: MapOpportunity[]): CountryData[] => {
+const agruparOportunidadesPorPais = (
+  dados: MapOpportunity[]
+): CountryData[] => {
   const agrupado: Record<string, CountryData> = {}
   for (const oportunidade of dados) {
     const codigo = getCodigoPais(oportunidade.pais)
@@ -221,7 +225,9 @@ const WorldMapPage = () => {
         ])
 
         const mergedData: MapOpportunity[] = [
-          ...internationalData.map((item) => toMapOpportunity(item, "internacional")),
+          ...internationalData.map((item) =>
+            toMapOpportunity(item, "internacional")
+          ),
           ...nationalData.map((item) => toMapOpportunity(item, "nacional")),
         ]
 
@@ -233,7 +239,7 @@ const WorldMapPage = () => {
       }
     }
 
-    void fetchData()
+    fetchData()
   }, [])
 
   const listaDePaisesComOportunidades = useMemo(
@@ -290,14 +296,15 @@ const WorldMapPage = () => {
         className={`relative flex w-full flex-col border border-slate-950 bg-slate-900 shadow-lg md:h-full md:basis-1/4 ${baseTransition} ${showSidebar ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"} ${clickedCountryData && isMobileView ? "z-20 h-full" : "z-20 flex-1 md:h-full"}`}
       >
         {clickedCountryData && (
-          <button
+          <Button
             className="absolute top-4 right-4 z-30 text-white transition-colors hover:text-amber-500"
             onClick={() => setClickedCountryData(null)}
             title="Fechar detalhes do país"
             type="button"
+            variant="ghost"
           >
             <FaTimes size={20} />
-          </button>
+          </Button>
         )}
 
         <div className="px-6 py-4">
@@ -386,19 +393,17 @@ const WorldMapPage = () => {
               </h3>
               <div className="hidden grid-cols-2 gap-2 text-sm md:grid">
                 {listaDePaisesComOportunidades.map((pais) => (
-                  <button
+                  <Button
                     className="rounded-md border border-slate-900 bg-slate-950 p-2 text-left text-white hover:bg-slate-800"
                     key={pais.codigo}
                     onClick={() => setClickedCountryData(pais)}
                     type="button"
+                    variant="ghost"
                   >
                     <span className="font-semibold text-amber-500">
-                      {pais.nome}
+                      {`${pais.nome} (${pais.count})`}
                     </span>
-                    <br />
-                    {pais.count}{" "}
-                    {pais.count === 1 ? "oportunidade" : "oportunidades"}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>

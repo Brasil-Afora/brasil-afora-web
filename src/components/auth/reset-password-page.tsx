@@ -1,22 +1,38 @@
 import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { authClient } from "../../lib/auth-client"
 import AuthLayout from "./auth-layout"
 import { AuthButton, AuthError, AuthInput, AuthSuccess } from "./auth-ui"
+
+interface ResetPasswordFormValues {
+  confirmPassword: string
+  password: string
+}
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const token = searchParams.get("token") ?? ""
 
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const {
+    formState: { errors },
+    handleSubmit,
+    register,
+  } = useForm<ResetPasswordFormValues>({
+    defaultValues: {
+      confirmPassword: "",
+      password: "",
+    },
+  })
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmitForm = async ({
+    confirmPassword,
+    password,
+  }: ResetPasswordFormValues) => {
     setError(null)
     setSuccess(null)
 
@@ -62,30 +78,38 @@ const ResetPasswordPage = () => {
       subtitle="Escolha uma nova senha para sua conta"
       title="Redefinir senha"
     >
-      <form className="space-y-5" onSubmit={handleSubmit}>
+      <form className="space-y-5" onSubmit={handleSubmit(handleSubmitForm)}>
         <AuthError message={error} />
         <AuthSuccess message={success} />
 
         <AuthInput
           autoComplete="new-password"
+          errorMessage={errors.password?.message}
           id="password"
           label="Nova senha"
-          onChange={setPassword}
           placeholder="Mínimo 8 caracteres"
+          registration={register("password", {
+            minLength: {
+              value: 8,
+              message: "A senha deve ter pelo menos 8 caracteres.",
+            },
+            required: "Informe uma nova senha.",
+          })}
           required
           type="password"
-          value={password}
         />
 
         <AuthInput
           autoComplete="new-password"
+          errorMessage={errors.confirmPassword?.message}
           id="confirm-password"
           label="Confirmar nova senha"
-          onChange={setConfirmPassword}
           placeholder="Repita a nova senha"
+          registration={register("confirmPassword", {
+            required: "Confirme sua senha.",
+          })}
           required
           type="password"
-          value={confirmPassword}
         />
 
         <AuthButton isLoading={isLoading} type="submit">

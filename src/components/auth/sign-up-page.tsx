@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
 import { signIn, signUp } from "../../lib/auth-client"
 import AuthLayout from "./auth-layout"
@@ -10,19 +11,38 @@ import {
   GoogleIcon,
 } from "./auth-ui"
 
+interface SignUpFormValues {
+  confirmPassword: string
+  email: string
+  name: string
+  password: string
+}
+
 const SignUpPage = () => {
   const navigate = useNavigate()
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const {
+    formState: { errors },
+    handleSubmit,
+    register,
+  } = useForm<SignUpFormValues>({
+    defaultValues: {
+      confirmPassword: "",
+      email: "",
+      name: "",
+      password: "",
+    },
+  })
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmitForm = async ({
+    confirmPassword,
+    email,
+    name,
+    password,
+  }: SignUpFormValues) => {
     setError(null)
     setSuccess(null)
 
@@ -44,8 +64,7 @@ const SignUpPage = () => {
       name,
       email,
       password,
-      // After clicking the link in the inbox, send users to login instead of the verify page.
-      callbackURL: `${window.location.origin}/login?email-verificado=1`,
+      callbackURL: `${window.location.origin}/perfil`,
     })
 
     setIsLoading(false)
@@ -101,52 +120,64 @@ const SignUpPage = () => {
           <div className="h-px flex-1 bg-slate-700" />
         </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit(handleSubmitForm)}>
           <AuthError message={error} />
           <AuthSuccess message={success} />
 
           <AuthInput
             autoComplete="name"
+            errorMessage={errors.name?.message}
             id="name"
             label="Nome completo"
-            onChange={setName}
             placeholder="Seu nome"
+            registration={register("name", {
+              required: "Informe seu nome completo.",
+            })}
             required
             type="text"
-            value={name}
           />
 
           <AuthInput
             autoComplete="email"
+            errorMessage={errors.email?.message}
             id="email"
             label="E-mail"
-            onChange={setEmail}
             placeholder="seu@email.com"
+            registration={register("email", {
+              required: "Informe seu e-mail.",
+            })}
             required
             type="email"
-            value={email}
           />
 
           <AuthInput
             autoComplete="new-password"
+            errorMessage={errors.password?.message}
             id="password"
             label="Senha"
-            onChange={setPassword}
             placeholder="Mínimo 8 caracteres"
+            registration={register("password", {
+              minLength: {
+                value: 8,
+                message: "A senha deve ter pelo menos 8 caracteres.",
+              },
+              required: "Informe uma senha.",
+            })}
             required
             type="password"
-            value={password}
           />
 
           <AuthInput
             autoComplete="new-password"
+            errorMessage={errors.confirmPassword?.message}
             id="confirm-password"
             label="Confirmar senha"
-            onChange={setConfirmPassword}
             placeholder="Repita sua senha"
+            registration={register("confirmPassword", {
+              required: "Confirme sua senha.",
+            })}
             required
             type="password"
-            value={confirmPassword}
           />
 
           <AuthButton isLoading={isLoading} type="submit">

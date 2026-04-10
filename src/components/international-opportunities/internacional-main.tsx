@@ -69,14 +69,14 @@ const applyOpportunityFilters = (
   }
   if (filtros.pais.length > 0) {
     result = result.filter((op) =>
-      filtros.pais.some(pais =>
+      filtros.pais.some((pais) =>
         op.pais.toLowerCase().includes(pais.toLowerCase())
       )
     )
   }
   if (filtros.nivelEnsino.length > 0) {
     result = result.filter((op) =>
-      filtros.nivelEnsino.some(nivel =>
+      filtros.nivelEnsino.some((nivel) =>
         op.nivelEnsino.toLowerCase().includes(nivel.toLowerCase())
       )
     )
@@ -93,14 +93,14 @@ const applyOpportunityFilters = (
   }
   if (filtros.taxaAplicacao.length > 0) {
     result = result.filter((op) =>
-      filtros.taxaAplicacao.some(taxa =>
+      filtros.taxaAplicacao.some((taxa) =>
         op.taxaAplicacao.toLowerCase().includes(taxa.toLowerCase())
       )
     )
   }
   if (filtros.tipoBolsa.length > 0) {
     result = result.filter((op) =>
-      filtros.tipoBolsa.some(tipo =>
+      filtros.tipoBolsa.some((tipo) =>
         op.tipoBolsa.toLowerCase().includes(tipo.toLowerCase())
       )
     )

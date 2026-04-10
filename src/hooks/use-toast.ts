@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback } from "react"
+import { toast } from "sonner"
 
 interface ToastState {
   message: string
@@ -12,27 +13,23 @@ interface UseToastResult {
 }
 
 function useToast(autoHideMs = 3000): UseToastResult {
-  const [toast, setToast] = useState<ToastState>({
+  const currentToast: ToastState = {
     visible: false,
     message: "",
-  })
+  }
 
-  const show = useCallback((message: string) => {
-    setToast({ visible: true, message })
-  }, [])
+  const show = useCallback(
+    (message: string) => {
+      toast(message, { duration: autoHideMs })
+    },
+    [autoHideMs]
+  )
 
   const hide = useCallback(() => {
-    setToast((prev) => ({ ...prev, visible: false }))
+    toast.dismiss()
   }, [])
 
-  useEffect(() => {
-    if (toast.visible && autoHideMs > 0) {
-      const timer = setTimeout(hide, autoHideMs)
-      return () => clearTimeout(timer)
-    }
-  }, [toast.visible, autoHideMs, hide])
-
-  return { toast, show, hide }
+  return { toast: currentToast, show, hide }
 }
 
 export default useToast

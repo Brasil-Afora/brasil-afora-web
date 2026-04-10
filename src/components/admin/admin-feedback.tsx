@@ -17,7 +17,11 @@ const AdminFeedback = ({ feedback }: AdminFeedbackProps) => {
       ? "bg-green-900/40 text-green-200"
       : "bg-red-900/40 text-red-200"
 
-  return <div className={`mb-4 rounded-lg p-3 ${colorClasses}`}>{feedback.message}</div>
+  return (
+    <div className={`mb-4 rounded-lg p-3 ${colorClasses}`}>
+      {feedback.message}
+    </div>
+  )
 }
 
 export default AdminFeedback

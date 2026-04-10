@@ -44,7 +44,7 @@ const VerifyEmailPage = () => {
     }
 
     const timeoutId = window.setTimeout(() => {
-      navigate("/login?email-verificado=1", { replace: true })
+      navigate("/perfil", { replace: true })
     }, 2000)
 
     return () => {
@@ -72,7 +72,7 @@ const VerifyEmailPage = () => {
 
     const { error } = await authClient.sendVerificationEmail({
       email: userEmail,
-      callbackURL: `${window.location.origin}/login?email-verificado=1`,
+      callbackURL: `${window.location.origin}/perfil`,
     })
 
     setIsResending(false)
@@ -135,13 +135,13 @@ const VerifyEmailPage = () => {
               recursos da plataforma.
             </p>
             <p className="text-slate-400 text-sm">
-              Redirecionando para o login...
+              Redirecionando para o seu perfil...
             </p>
             <Link
               className="inline-block w-full rounded-lg bg-amber-500 px-4 py-2.5 text-center font-semibold text-slate-950 text-sm transition-colors hover:bg-amber-400"
-              to="/login?email-verificado=1"
+              to="/perfil"
             >
-              Ir para login
+              Ir para o perfil
             </Link>
           </div>
         )}

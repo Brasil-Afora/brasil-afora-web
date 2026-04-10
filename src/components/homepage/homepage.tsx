@@ -228,8 +228,8 @@ const Homepage = () => {
                 Entrar em Contato
               </h3>
               <p className="mb-6 text-base text-white/70">
-                Tem alguma sugestão, crítica ou dúvida? Gostaríamos muito de ouvir você.
-                Entre em contato conosco através do e-mail.
+                Tem alguma sugestão, crítica ou dúvida? Gostaríamos muito de
+                ouvir você. Entre em contato conosco através do e-mail.
               </p>
               <div className="flex flex-col items-start space-y-4">
                 <div className="flex items-center text-lg text-white">
@@ -256,10 +256,10 @@ const Homepage = () => {
                 Preencha o formulário com os detalhes.
               </p>
               <a
+                className="inline-block w-full rounded-full bg-amber-500 px-6 py-3 text-center font-bold text-slate-950 transition-colors duration-300 hover:bg-amber-600"
                 href="https://forms.gle/dJrD1eg4y3VHGFap9"
-                target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block w-full rounded-full bg-amber-500 px-6 py-3 font-bold text-slate-950 text-center transition-colors duration-300 hover:bg-amber-600"
+                target="_blank"
               >
                 Abrir Formulário
               </a>

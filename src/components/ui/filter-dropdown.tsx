@@ -1,6 +1,19 @@
-import { useRef, useState } from "react"
-import { FaChevronDown, FaChevronUp, FaSearch } from "react-icons/fa"
-import useClickOutside from "../../hooks/use-click-outside"
+import { useMemo, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Combobox,
+  ComboboxCollection,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+  ComboboxValue,
+} from "@/components/ui/combobox"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 type AccentColor = "amber" | "blue"
 
@@ -36,99 +49,155 @@ const FilterDropdown = ({
   searchable = false,
   searchPlaceholder = "Pesquisar...",
 }: FilterDropdownProps) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  useClickOutside(dropdownRef, () => {
-    setIsOpen(false)
-    setSearchTerm("")
-  })
-
   const accent = getAccentClasses(accentColor)
+  const [searchValue, setSearchValue] = useState("")
 
-  const getDisplayText = (): string => {
-    if (selected.length === 0) {
+  const selectedOptions = useMemo(() => new Set(selected), [selected])
+
+  const visibleOptions = useMemo(() => {
+    if (!searchable) {
+      return options
+    }
+
+    const normalizeSearchText = (value: string) =>
+      value
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+
+    const normalizedSearch = normalizeSearchText(searchValue.trim())
+    if (normalizedSearch.length === 0) {
+      return options
+    }
+
+    return options.filter((option) =>
+      normalizeSearchText(option).includes(normalizedSearch)
+    )
+  }, [options, searchable, searchValue])
+
+  const normalizeValues = (value: string | string[] | null | undefined) => {
+    if (Array.isArray(value)) {
+      return value
+    }
+
+    if (typeof value === "string" && value.length > 0) {
+      return [value]
+    }
+
+    return []
+  }
+
+  const getDisplayText = (
+    value: string | string[] | null | undefined
+  ): string => {
+    const normalizedValues = normalizeValues(value)
+
+    if (normalizedValues.length === 0) {
       return placeholder
     }
-    if (selected.length === 1) {
-      return selected[0]
+
+    if (normalizedValues.length === 1) {
+      return normalizedValues[0] ?? placeholder
     }
-    return `${selected.length} selecionados`
+
+    return `${normalizedValues.length} selecionados`
   }
 
-  const filteredOptions = searchable
-    ? options.filter((opt) =>
-      opt.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    : options
+  const handleValueChange = (value: string | string[] | null) => {
+    const nextValues = new Set(normalizeValues(value))
+    const currentValues = new Set(selected)
 
-  const handleToggle = () => {
-    setIsOpen(!isOpen)
-    if (isOpen) {
-      setSearchTerm("")
+    for (const option of options) {
+      if (currentValues.has(option) !== nextValues.has(option)) {
+        onChange(option)
+      }
     }
   }
 
-  const inputClasses = `p-2 rounded bg-slate-950 text-white border border-slate-900 focus:outline-none focus:ring-1 ${accent.focus} h-10 w-full text-sm`
-  const dropdownButtonClasses = `p-2 rounded bg-slate-950 text-white border border-slate-900 focus:outline-none focus:ring-1 ${accent.focus} h-10 w-full flex justify-between items-center cursor-pointer text-sm`
+  const dropdownButtonClasses = `p-2 rounded bg-slate-950 text-white border border-slate-900 hover:text-white focus:text-white aria-expanded:text-white focus:outline-none focus:ring-1 ${accent.focus} h-10 w-full flex justify-between items-center cursor-pointer text-sm`
   const dropdownMenuClasses =
-    "absolute mt-2 left-0 z-20 w-full max-h-60 overflow-y-auto bg-slate-900 rounded-lg shadow-xl p-3 border border-slate-950 text-white"
+    "z-20 w-full rounded-lg border border-slate-950 bg-slate-900 p-3 text-white shadow-xl"
   const checkboxClasses = `rounded ${accent.checkbox} bg-slate-950 border-slate-900`
+  const maxVisibleItems = cols === 2 ? 12 : 8
+  const shouldUseScrollArea = visibleOptions.length > maxVisibleItems
+
+  const optionsItems = (
+    <ComboboxGroup
+      className={cols === 2 ? "grid grid-cols-2 gap-2" : "flex flex-col gap-2"}
+      items={visibleOptions}
+    >
+      <ComboboxCollection>
+        {(opt) => (
+          <ComboboxItem
+            className="gap-2 pr-2 text-sm text-white hover:bg-slate-800/80 focus:bg-slate-800/80 focus:text-white data-highlighted:bg-slate-800/80 data-highlighted:text-white"
+            key={opt}
+            value={opt}
+          >
+            <Checkbox
+              checked={selectedOptions.has(opt)}
+              className={checkboxClasses}
+            />
+            <span className="text-white">{opt}</span>
+          </ComboboxItem>
+        )}
+      </ComboboxCollection>
+    </ComboboxGroup>
+  )
 
   return (
-    <div className="relative w-full" ref={dropdownRef}>
+    <div className="relative w-full">
       <p className="mb-1 block text-white text-xs">
         <span className={accent.label}>{label}</span>
       </p>
-      <button
-        className={dropdownButtonClasses}
-        onClick={handleToggle}
-        type="button"
+
+      <Combobox
+        items={visibleOptions}
+        itemToStringValue={(item) => item}
+        multiple
+        onValueChange={handleValueChange}
+        value={selected}
       >
-        <span>{getDisplayText()}</span>
-        {isOpen ? (
-          <FaChevronUp className="ml-2" />
-        ) : (
-          <FaChevronDown className="ml-2" />
-        )}
-      </button>
-      {isOpen && (
-        <div className={dropdownMenuClasses}>
+        <ComboboxTrigger
+          className="w-full"
+          render={
+            <Button
+              className={dropdownButtonClasses}
+              type="button"
+              variant="ghost"
+            />
+          }
+        >
+          <ComboboxValue>
+            {(values) => (
+              <span>{getDisplayText(values as string | string[] | null)}</span>
+            )}
+          </ComboboxValue>
+        </ComboboxTrigger>
+
+        <ComboboxContent align="start" className={dropdownMenuClasses}>
           {searchable && (
-            <div className="sticky top-0 mb-2 rounded-md bg-slate-950 p-2">
-              <div className="relative flex items-center">
-                <FaSearch className="absolute left-3 text-white text-xs text-opacity-50" />
-                <input
-                  className="w-full rounded bg-slate-900 p-2 pl-10 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={searchPlaceholder}
-                  type="text"
-                  value={searchTerm}
-                />
-              </div>
-            </div>
+            <ComboboxInput
+              className="mb-2 w-full rounded bg-slate-900 text-white text-xs placeholder:text-slate-400"
+              onChange={(event) => setSearchValue(event.target.value)}
+              placeholder={searchPlaceholder}
+              showClear
+              showTrigger={false}
+            />
           )}
-          <div
-            className={`grid gap-2 ${cols === 2 ? "grid-cols-2" : "flex flex-col"}`}
-          >
-            {filteredOptions.map((opt) => (
-              <label
-                className="flex cursor-pointer items-center space-x-2 text-sm"
-                key={opt}
-              >
-                <input
-                  checked={selected.includes(opt)}
-                  className={checkboxClasses}
-                  onChange={() => onChange(opt)}
-                  type="checkbox"
-                />
-                <span>{opt}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
+
+          <ComboboxEmpty>Nenhuma opção encontrada.</ComboboxEmpty>
+
+          {shouldUseScrollArea ? (
+            <ScrollArea className="h-56 pr-1 [&_[data-slot=scroll-area-scrollbar]]:mr-0.5 [&_[data-slot=scroll-area-scrollbar]]:w-2.5 [&_[data-slot=scroll-area-scrollbar]]:rounded-full [&_[data-slot=scroll-area-scrollbar]]:bg-slate-800/80 [&_[data-slot=scroll-area-thumb]]:rounded-full [&_[data-slot=scroll-area-thumb]]:bg-slate-500/95">
+              <ComboboxList className="max-h-none overflow-visible p-1">
+                {optionsItems}
+              </ComboboxList>
+            </ScrollArea>
+          ) : (
+            <ComboboxList>{optionsItems}</ComboboxList>
+          )}
+        </ComboboxContent>
+      </Combobox>
     </div>
   )
 }

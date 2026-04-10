@@ -1,17 +1,29 @@
 import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { Link } from "react-router-dom"
 import { authClient } from "../../lib/auth-client"
 import AuthLayout from "./auth-layout"
 import { AuthButton, AuthError, AuthInput, AuthSuccess } from "./auth-ui"
 
+interface ForgotPasswordFormValues {
+  email: string
+}
+
 const ForgotPasswordPage = () => {
-  const [email, setEmail] = useState("")
+  const {
+    formState: { errors },
+    handleSubmit,
+    register,
+  } = useForm<ForgotPasswordFormValues>({
+    defaultValues: {
+      email: "",
+    },
+  })
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmitForm = async ({ email }: ForgotPasswordFormValues) => {
     setError(null)
     setSuccess(null)
     setIsLoading(true)
@@ -38,19 +50,21 @@ const ForgotPasswordPage = () => {
       subtitle="Informe seu e-mail para receber as instruções de redefinição"
       title="Esqueceu sua senha?"
     >
-      <form className="space-y-5" onSubmit={handleSubmit}>
+      <form className="space-y-5" onSubmit={handleSubmit(handleSubmitForm)}>
         <AuthError message={error} />
         <AuthSuccess message={success} />
 
         <AuthInput
           autoComplete="email"
+          errorMessage={errors.email?.message}
           id="email"
           label="E-mail"
-          onChange={setEmail}
           placeholder="seu@email.com"
+          registration={register("email", {
+            required: "Informe seu e-mail.",
+          })}
           required
           type="email"
-          value={email}
         />
 
         <AuthButton isLoading={isLoading} type="submit">

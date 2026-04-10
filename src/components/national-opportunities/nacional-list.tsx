@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react"
 import { FaCalendarAlt, FaMapMarkerAlt, FaTag } from "react-icons/fa"
 import { Link } from "react-router-dom"
-import { getTimeRemaining, getTimeRemainingBadgeClass } from "../../lib/date-utils"
+import {
+  getTimeRemaining,
+  getTimeRemainingBadgeClass,
+} from "../../lib/date-utils"
 import type { Opportunity } from "./types"
 
 interface NacionalListProps {

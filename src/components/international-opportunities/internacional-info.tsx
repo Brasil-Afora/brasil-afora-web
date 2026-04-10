@@ -19,23 +19,23 @@ import {
   FaUser,
 } from "react-icons/fa"
 import { useLocation, useNavigate, useParams } from "react-router-dom"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import { useSession } from "../../lib/auth-client"
+import {
+  getTimeRemaining,
+  getTimeRemainingBadgeClass,
+} from "../../lib/date-utils"
 import {
   addInternationalFavorite,
   getInternationalFavorites,
   getInternationalOpportunityById,
   removeInternationalFavorite,
 } from "../../lib/opportunities-api"
-import { getTimeRemaining, getTimeRemainingBadgeClass } from "../../lib/date-utils"
 import InternacionalConfirmationPopup from "./internacional-confirmation-popup"
 import type { Opportunity } from "./types"
 
 type ActiveTab = "sobre" | "requisitos" | "custos-bolsas" | "inscricao"
-
-interface PopupState {
-  message: string
-  visible: boolean
-}
 
 const getScholarshipTagClasses = (tipoBolsa: string): string => {
   switch (tipoBolsa?.toLowerCase()) {
@@ -100,10 +100,6 @@ const InternacionalInfo = () => {
   }, [id])
 
   const [isFavorited, setIsFavorited] = useState(false)
-  const [popup, setPopup] = useState<PopupState>({
-    visible: false,
-    message: "",
-  })
   const [confirmationOpportunity, setConfirmationOpportunity] =
     useState<Opportunity | null>(null)
   const [activeTab, setActiveTab] = useState<ActiveTab>("sobre")
@@ -138,16 +134,15 @@ const InternacionalInfo = () => {
   }, [])
 
   useEffect(() => {
-    if (popup.visible) {
-      const timer = setTimeout(() => {
-        setPopup((prev) => ({ ...prev, visible: false }))
-      }, 3000)
-      return () => clearTimeout(timer)
+    if (!oportunidade?.imagem) {
+      setHeroImageFailed(true)
+      return
     }
-  }, [popup.visible])
 
-  useEffect(() => {
-    setHeroImageFailed(false)
+    const image = new Image()
+    image.onload = () => setHeroImageFailed(false)
+    image.onerror = () => setHeroImageFailed(true)
+    image.src = oportunidade.imagem
   }, [oportunidade?.imagem])
 
   const redirectToLogin = () => {
@@ -171,7 +166,7 @@ const InternacionalInfo = () => {
       return
     }
 
-    if (!session && !isSessionPending) {
+    if (!(session || isSessionPending)) {
       redirectToLogin()
       return
     }
@@ -182,9 +177,11 @@ const InternacionalInfo = () => {
       try {
         await addInternationalFavorite(oportunidade.id)
         setIsFavorited(true)
-        setPopup({
-          visible: true,
-          message: "Oportunidade adicionada aos seus Favoritos!",
+        toast("Oportunidade adicionada aos seus Favoritos!", {
+          action: {
+            label: "Ir para perfil",
+            onClick: () => navigate("/perfil"),
+          },
         })
       } catch (error) {
         if (isUnauthorizedError(error)) {
@@ -192,10 +189,7 @@ const InternacionalInfo = () => {
           return
         }
 
-        setPopup({
-          visible: true,
-          message: "Erro ao adicionar aos favoritos.",
-        })
+        toast("Erro ao adicionar aos favoritos.")
       }
     }
   }
@@ -205,20 +199,14 @@ const InternacionalInfo = () => {
       try {
         await removeInternationalFavorite(confirmationOpportunity.id)
         setIsFavorited(false)
-        setPopup({
-          visible: true,
-          message: "Oportunidade removida dos seus Favoritos.",
-        })
+        toast("Oportunidade removida dos seus Favoritos.")
       } catch (error) {
         if (isUnauthorizedError(error)) {
           redirectToLogin()
           return
         }
 
-        setPopup({
-          visible: true,
-          message: "Erro ao remover dos favoritos.",
-        })
+        toast("Erro ao remover dos favoritos.")
       }
     }
     setConfirmationOpportunity(null)
@@ -244,7 +232,9 @@ const InternacionalInfo = () => {
 
   const scholarshipClasses = getScholarshipTagClasses(oportunidade.tipoBolsa)
   const timeRemaining = getTimeRemaining(oportunidade.prazoInscricao)
-  const deadlineBadgeClass = getTimeRemainingBadgeClass(oportunidade.prazoInscricao)
+  const deadlineBadgeClass = getTimeRemainingBadgeClass(
+    oportunidade.prazoInscricao
+  )
 
   const tabs: { key: ActiveTab; label: string; icon: React.ReactNode }[] = [
     {
@@ -475,14 +465,17 @@ const InternacionalInfo = () => {
         <img
           alt="Imagem de capa padrão"
           className="absolute inset-0 h-full w-full object-cover"
+          height={1080}
           src="/map.jpg"
+          width={1920}
         />
         {!heroImageFailed && oportunidade.imagem && (
           <img
             alt={`Imagem de Capa para ${oportunidade.nome}`}
             className="absolute inset-0 h-full w-full object-cover"
-            onError={() => setHeroImageFailed(true)}
+            height={1080}
             src={oportunidade.imagem}
+            width={1920}
           />
         )}
         <div className="absolute inset-0 flex flex-col justify-end bg-black/80 p-8 pb-12 md:p-16 md:pb-24">
@@ -507,21 +500,23 @@ const InternacionalInfo = () => {
 
       <div className="container relative z-10 mx-auto -mt-8 px-4">
         <div className="mb-8 flex flex-col rounded-xl border border-slate-950 bg-slate-900 p-6 shadow-xl md:flex-row md:items-center md:justify-between">
-          <button
+          <Button
             className="hidden items-center text-blue-400 transition-colors hover:text-blue-500 md:flex"
             onClick={() => navigate(-1)}
             type="button"
+            variant="ghost"
           >
             <FaChevronLeft className="mr-2" /> Voltar
-          </button>
+          </Button>
           <div className="mb-4 flex w-full items-center justify-between md:hidden">
-            <button
+            <Button
               className="flex items-center text-blue-400 transition-colors hover:text-blue-500"
               onClick={() => navigate(-1)}
               type="button"
+              variant="ghost"
             >
               <FaChevronLeft className="mr-2" /> Voltar
-            </button>
+            </Button>
           </div>
           <div className="flex w-full flex-col gap-4 md:w-auto md:flex-row md:items-center">
             {timeRemaining && (
@@ -529,16 +524,17 @@ const InternacionalInfo = () => {
                 {timeRemaining}
               </span>
             )}
-            <button
+            <Button
               className={`inline-flex h-11 min-w-[248px] items-center justify-center rounded-full px-6 py-2 font-bold transition-colors duration-200 ${isFavorited ? "bg-blue-500 text-white" : "bg-slate-950 text-white hover:bg-slate-800"}`}
               onClick={handleFavoriteToggle}
               type="button"
+              variant="ghost"
             >
               <FaHeart
                 className={`mr-2 ${isFavorited ? "text-white" : "text-blue-400"}`}
               />
               {isFavorited ? "Remover" : "Adicionar aos Favoritos"}
-            </button>
+            </Button>
             <a
               className="inline-flex h-11 min-w-[248px] items-center justify-center gap-2 rounded-full bg-blue-500 px-6 py-2 font-bold text-white transition-colors duration-300 hover:bg-blue-600"
               href={oportunidade.linkOficial || "#"}
@@ -553,32 +549,20 @@ const InternacionalInfo = () => {
         <div className="py-8">
           <div className="mb-6 flex flex-wrap justify-center gap-2 md:justify-start">
             {tabs.map(({ key, label, icon }) => (
-              <button
+              <Button
                 className={`rounded-full px-4 py-2 font-bold text-sm transition-colors md:text-base ${activeTab === key ? "bg-blue-500 text-white" : "bg-slate-900 text-white hover:bg-slate-800"}`}
                 key={key}
                 onClick={() => setActiveTab(key)}
                 type="button"
+                variant="ghost"
               >
                 {icon} {label}
-              </button>
+              </Button>
             ))}
           </div>
           {renderTabContent()}
         </div>
       </div>
-
-      {popup.visible && (
-        <div className="fixed top-4 right-4 z-50 flex animate-slideIn items-center gap-4 rounded-lg border border-slate-950 bg-slate-900 p-4 text-white shadow-lg">
-          <span>{popup.message}</span>
-          <button
-            className="text-white hover:text-gray-200"
-            onClick={() => setPopup((prev) => ({ ...prev, visible: false }))}
-            type="button"
-          >
-            &times;
-          </button>
-        </div>
-      )}
 
       <InternacionalConfirmationPopup
         onCancel={() => setConfirmationOpportunity(null)}

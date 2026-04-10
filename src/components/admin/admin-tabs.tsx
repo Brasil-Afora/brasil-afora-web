@@ -1,3 +1,5 @@
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 type AdminTab = "internacional" | "nacional"
 
 interface AdminTabsProps {
@@ -7,22 +9,26 @@ interface AdminTabsProps {
 
 const AdminTabs = ({ activeTab, onTabChange }: AdminTabsProps) => {
   return (
-    <div className="mb-4 flex gap-2">
-      <button
-        className={`rounded-lg px-4 py-2 font-semibold ${activeTab === "internacional" ? "bg-blue-500 text-white" : "bg-slate-900 text-slate-200"}`}
-        onClick={() => onTabChange("internacional")}
-        type="button"
-      >
-        Internacionais
-      </button>
-      <button
-        className={`rounded-lg px-4 py-2 font-semibold ${activeTab === "nacional" ? "bg-amber-500 text-black" : "bg-slate-900 text-slate-200"}`}
-        onClick={() => onTabChange("nacional")}
-        type="button"
-      >
-        Nacionais
-      </button>
-    </div>
+    <Tabs
+      className="mb-4"
+      onValueChange={(value) => onTabChange(value as AdminTab)}
+      value={activeTab}
+    >
+      <TabsList className="h-auto bg-transparent p-0">
+        <TabsTrigger
+          className="rounded-lg px-4 py-2 font-semibold text-slate-200 data-active:bg-blue-500 data-active:text-white"
+          value="internacional"
+        >
+          Internacionais
+        </TabsTrigger>
+        <TabsTrigger
+          className="rounded-lg px-4 py-2 font-semibold text-slate-200 data-active:bg-amber-500 data-active:text-black"
+          value="nacional"
+        >
+          Nacionais
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
   )
 }
 

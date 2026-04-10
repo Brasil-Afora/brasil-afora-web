@@ -1,15 +1,21 @@
-import type { ReactNode } from "react"
+import type { ChangeEvent, ReactNode } from "react"
+import type { UseFormRegisterReturn } from "react-hook-form"
+import { Button } from "@/components/ui/button"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 
 interface AuthInputProps {
   autoComplete?: string
+  errorMessage?: string
   id: string
   label: string
-  onChange: (value: string) => void
+  onChange?: (value: string) => void
   placeholder?: string
+  registration?: UseFormRegisterReturn
   required?: boolean
   rightElement?: ReactNode
   type: string
-  value: string
+  value?: string
 }
 
 export const AuthInput = ({
@@ -21,23 +27,37 @@ export const AuthInput = ({
   placeholder,
   autoComplete,
   required,
+  registration,
+  errorMessage,
   rightElement,
 }: AuthInputProps) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    registration?.onChange(event)
+    onChange?.(event.target.value)
+  }
+
   return (
-    <div className="space-y-1">
-      <label className="block font-medium text-slate-300 text-sm" htmlFor={id}>
+    <Field className="gap-1">
+      <FieldLabel
+        className="block font-medium text-slate-300 text-sm"
+        htmlFor={id}
+      >
         {label}
-      </label>
+      </FieldLabel>
       <div className="relative">
-        <input
+        <Input
+          {...(value !== undefined ? { value } : {})}
+          aria-invalid={errorMessage ? true : undefined}
           autoComplete={autoComplete}
           className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-500 transition-colors focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
           id={id}
-          onChange={(e) => onChange(e.target.value)}
+          name={registration?.name}
+          onBlur={registration?.onBlur}
+          onChange={handleChange}
           placeholder={placeholder}
+          ref={registration?.ref}
           required={required}
           type={type}
-          value={value}
         />
         {rightElement && (
           <div className="absolute inset-y-0 right-3 flex items-center">
@@ -45,7 +65,8 @@ export const AuthInput = ({
           </div>
         )}
       </div>
-    </div>
+      <FieldError className="text-red-400">{errorMessage}</FieldError>
+    </Field>
   )
 }
 
@@ -75,11 +96,12 @@ export const AuthButton = ({
   }
 
   return (
-    <button
+    <Button
       className={`${base} ${variants[variant]} ${className}`}
       disabled={isLoading}
       onClick={onClick}
       type={type}
+      variant="ghost"
     >
       {isLoading ? (
         <span className="flex items-center justify-center gap-2">
@@ -108,7 +130,7 @@ export const AuthButton = ({
       ) : (
         children
       )}
-    </button>
+    </Button>
   )
 }
 

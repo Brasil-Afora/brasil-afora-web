@@ -11,8 +11,23 @@ import {
   FaTrash,
 } from "react-icons/fa"
 import { Link } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import ConfirmationModal from "@/components/ui/confirmation-modal"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import useLocalStorage from "../../hooks/use-local-storage"
-import { getTimeRemaining, getTimeRemainingBadgeClass } from "../../lib/date-utils"
+import {
+  getTimeRemaining,
+  getTimeRemainingBadgeClass,
+} from "../../lib/date-utils"
 import type { FavoriteOpportunity } from "./types"
 
 interface ChecklistItem {
@@ -32,10 +47,7 @@ interface PendingStatusChange {
   oportunidadeId: string
 }
 
-type ApplicationStatus =
-  | "Em preparação"
-  | "Inscrito"
-  | "Aprovado"
+type ApplicationStatus = "Em preparação" | "Inscrito" | "Aprovado"
 
 type OpportunitiesStatus = Record<string, ApplicationStatus>
 type OpportunitiesPinned = Record<string, boolean>
@@ -45,6 +57,12 @@ const statusOptions: ApplicationStatus[] = [
   "Inscrito",
   "Aprovado",
 ]
+
+const statusPriority: Record<ApplicationStatus, number> = {
+  "Em preparação": 0,
+  Inscrito: 1,
+  Aprovado: 2,
+}
 
 const parseDeadline = (deadlineString: string): Date | null => {
   if (typeof deadlineString !== "string" || deadlineString.length < 10) {
@@ -215,50 +233,54 @@ const ProfileOpportunities = ({
     setPendingStatusChange(null)
   }
 
-  const sortedFavoriteOpportunities = [...favoriteOpportunities].sort((a, b) => {
-    const statusA = statusByOpportunity[a.id] ?? "Em preparação"
-    const statusB = statusByOpportunity[b.id] ?? "Em preparação"
-    const isAppliedA = statusA === "Inscrito"
-    const isAppliedB = statusB === "Inscrito"
+  const sortedFavoriteOpportunities = [...favoriteOpportunities].sort(
+    (a, b) => {
+      const statusA = statusByOpportunity[a.id] ?? "Em preparação"
+      const statusB = statusByOpportunity[b.id] ?? "Em preparação"
+      const statusPriorityA = statusPriority[statusA]
+      const statusPriorityB = statusPriority[statusB]
 
-    if (isAppliedA !== isAppliedB) {
-      return isAppliedA ? 1 : -1
+      if (statusPriorityA !== statusPriorityB) {
+        return statusPriorityA - statusPriorityB
+      }
+
+      const isPinnedA = Boolean(pinnedByOpportunity[a.id])
+      const isPinnedB = Boolean(pinnedByOpportunity[b.id])
+
+      if (isPinnedA !== isPinnedB) {
+        return isPinnedA ? -1 : 1
+      }
+
+      const dateA = parseDeadline(a.prazoInscricao)
+      const dateB = parseDeadline(b.prazoInscricao)
+
+      if (!(dateA || dateB)) {
+        return a.nome.localeCompare(b.nome)
+      }
+      if (!dateA) {
+        return 1
+      }
+      if (!dateB) {
+        return -1
+      }
+
+      return dateA.getTime() - dateB.getTime()
     }
-
-    const isPinnedA = Boolean(pinnedByOpportunity[a.id])
-    const isPinnedB = Boolean(pinnedByOpportunity[b.id])
-
-    if (isPinnedA !== isPinnedB) {
-      return isPinnedA ? -1 : 1
-    }
-
-    const dateA = parseDeadline(a.prazoInscricao)
-    const dateB = parseDeadline(b.prazoInscricao)
-
-    if (!dateA && !dateB) {
-      return a.nome.localeCompare(b.nome)
-    }
-    if (!dateA) {
-      return 1
-    }
-    if (!dateB) {
-      return -1
-    }
-
-    return dateA.getTime() - dateB.getTime()
-  })
+  )
 
   return (
     <div>
       <style>
-        {`@keyframes confetti-fall { 0% { transform: translateY(-12vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(120vh) rotate(540deg); opacity: 0; } }`}
+        {
+          "@keyframes confetti-fall { 0% { transform: translateY(-12vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(120vh) rotate(540deg); opacity: 0; } }"
+        }
       </style>
       {showCelebration && (
         <div className="pointer-events-none fixed inset-0 z-[70] overflow-hidden">
-          {confettiPieces.map((piece, index) => (
+          {confettiPieces.map((piece) => (
             <span
               className="absolute rounded-sm"
-              key={`confetti-${index}-${piece.left}`}
+              key={`confetti-${piece.left}-${piece.delay}-${piece.rotate}`}
               style={{
                 animation: `confetti-fall ${piece.duration}s linear ${piece.delay}s forwards`,
                 backgroundColor: piece.color,
@@ -274,9 +296,12 @@ const ProfileOpportunities = ({
       )}
       <div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {sortedFavoriteOpportunities.length > 0 ? (
+          /* biome-ignore lint/complexity/noExcessiveCognitiveComplexity: this render block handles many visual states in a single card. */
           sortedFavoriteOpportunities.map((oportunidade) => {
             const timeRemaining = getTimeRemaining(oportunidade.prazoInscricao)
-            const daysRemaining = getDaysUntilDeadline(oportunidade.prazoInscricao)
+            const daysRemaining = getDaysUntilDeadline(
+              oportunidade.prazoInscricao
+            )
             const deadlineBadgeClass = getTimeRemainingBadgeClass(
               oportunidade.prazoInscricao
             )
@@ -291,11 +316,17 @@ const ProfileOpportunities = ({
                 : 0
             const status =
               statusByOpportunity[oportunidade.id] ?? "Em preparação"
+            const statusSelectItems = statusOptions.map((item) => ({
+              label: item,
+              value: item,
+            }))
             const isApplied = status === "Inscrito"
+            const isApproved = status === "Aprovado"
             const checklistIsIncomplete =
               totalCount > 0 && completedCount < totalCount
             const isDeadlineNear = daysRemaining !== null && daysRemaining <= 7
-            const showNearDeadlineWarning = isDeadlineNear && checklistIsIncomplete
+            const showNearDeadlineWarning =
+              isDeadlineNear && checklistIsIncomplete
             const showSuggestMarkAsApplied =
               totalCount > 0 &&
               progressPercentage === 100 &&
@@ -304,13 +335,15 @@ const ProfileOpportunities = ({
 
             return (
               <div
-                className={`relative flex flex-col overflow-hidden rounded-2xl border shadow-lg ${isApplied
-                  ? "border-slate-800 bg-slate-950 opacity-90"
-                  : "border-slate-950 bg-slate-900"
+                className={`relative flex flex-col overflow-hidden rounded-2xl border shadow-lg ${isApproved
+                  ? "border-amber-500/60 bg-amber-500/10 opacity-80 saturate-50"
+                  : isApplied
+                    ? "border-slate-800 bg-slate-950 opacity-90"
+                    : "border-slate-950 bg-slate-900"
                   } ${isExpanded ? "h-auto" : "h-[420px]"}`}
                 key={oportunidade.id}
               >
-                <button
+                <Button
                   className={`absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-xl border shadow-lg backdrop-blur-sm transition-all duration-200 ${isPinned
                     ? "border-amber-300/90 bg-amber-400/95 text-black shadow-amber-500/40"
                     : "border-slate-600/80 bg-slate-950/90 text-white hover:-translate-y-0.5 hover:bg-slate-800/95"
@@ -318,11 +351,15 @@ const ProfileOpportunities = ({
                   onClick={() => handleTogglePin(oportunidade.id)}
                   title={isPinned ? "Desfixar do topo" : "Fixar no topo"}
                   type="button"
+                  variant="ghost"
                 >
                   <FaThumbtack className="h-4 w-4" />
-                </button>
-                <div className="absolute top-4 left-16 z-10 flex min-w-[3.3rem] items-center justify-center rounded-xl border border-amber-400/50 bg-slate-950/90 px-2 py-1 font-bold text-[11px] text-amber-400 shadow-lg backdrop-blur-sm">
-                  <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-amber-400" />
+                </Button>
+                <div className={`absolute top-4 left-16 z-10 flex min-w-[3.3rem] items-center justify-center rounded-xl px-2 py-1 font-bold text-[11px] shadow-lg backdrop-blur-sm ${isApproved
+                  ? "border border-amber-400/70 bg-slate-950/90 text-amber-300"
+                  : "border border-amber-400/50 bg-slate-950/90 text-amber-400"
+                  }`}>
+                  <span className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${isApproved ? "bg-amber-300" : "bg-amber-400"}`} />
                   {progressPercentage}%
                 </div>
                 {timeRemaining && (
@@ -350,23 +387,32 @@ const ProfileOpportunities = ({
                 <div className="flex grow flex-col p-4 text-white">
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between gap-3 text-sm">
-                      <span className="font-semibold text-amber-500">Status:</span>
-                      <select
-                        className="w-[11rem] rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
-                        onChange={(e) =>
+                      <span className="font-semibold text-amber-500">
+                        Status:
+                      </span>
+                      <Select
+                        items={statusSelectItems}
+                        onValueChange={(value) =>
                           handleRequestStatusChange(
                             oportunidade.id,
-                            e.target.value as ApplicationStatus
+                            value as ApplicationStatus
                           )
                         }
                         value={status}
                       >
-                        {statusOptions.map((item) => (
-                          <option key={item} value={item}>
-                            {item}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger className="h-auto w-[11rem] rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-500">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {statusOptions.map((item) => (
+                              <SelectItem key={item} value={item}>
+                                {item}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="flex items-center space-x-5 text-sm">
                       <div className="flex items-center space-x-2">
@@ -387,15 +433,35 @@ const ProfileOpportunities = ({
                       <span>{oportunidade.prazoInscricao}</span>
                     </div>
                   </div>
-                  <button
-                    className="mt-3 flex items-center justify-center gap-2 rounded-full bg-amber-500 px-4 py-2 text-center font-bold text-black text-sm transition-colors duration-200 hover:bg-amber-600"
-                    onClick={() =>
-                      handleRequestStatusChange(oportunidade.id, "Inscrito")
-                    }
-                    type="button"
-                  >
-                    <FaCheckCircle /> Marcar como aplicado
-                  </button>
+                  {status === "Em preparação" && (
+                    <Button
+                      className="mt-3 flex items-center justify-center gap-2 rounded-full bg-amber-500 px-4 py-2 text-center font-bold text-black text-sm transition-colors duration-200 hover:bg-amber-600"
+                      onClick={() =>
+                        handleRequestStatusChange(oportunidade.id, "Inscrito")
+                      }
+                      type="button"
+                      variant="ghost"
+                    >
+                      <FaCheckCircle /> Marcar como aplicado
+                    </Button>
+                  )}
+                  {status === "Inscrito" && (
+                    <Button
+                      className="mt-3 flex items-center justify-center gap-2 rounded-full bg-amber-500 px-4 py-2 text-center font-bold text-black text-sm transition-colors duration-200 hover:bg-amber-600"
+                      onClick={() =>
+                        handleRequestStatusChange(oportunidade.id, "Aprovado")
+                      }
+                      type="button"
+                      variant="ghost"
+                    >
+                      <FaCheckCircle /> Marcar como aprovado
+                    </Button>
+                  )}
+                  {isApproved && (
+                    <div className="mt-3 rounded-full border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-center font-bold text-amber-300 text-sm">
+                      Processo concluído
+                    </div>
+                  )}
                   <div className="mt-4 flex items-center justify-between">
                     <Link
                       className="rounded-full bg-slate-950 px-4 py-2 text-center font-bold text-amber-500 text-sm transition-colors duration-200 hover:bg-slate-800"
@@ -404,7 +470,7 @@ const ProfileOpportunities = ({
                       Ver Detalhes
                     </Link>
                     <div className="flex items-center space-x-2">
-                      <button
+                      <Button
                         className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-red-500 transition-colors duration-200 hover:bg-slate-800"
                         onClick={() =>
                           handleRemoveFromList(
@@ -416,17 +482,19 @@ const ProfileOpportunities = ({
                         }
                         title="Remover dos favoritos"
                         type="button"
+                        variant="ghost"
                       >
                         <FaTrash className="h-4 w-4" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-white transition-colors duration-200 hover:bg-slate-800"
                         onClick={() => handleToggleExpand(oportunidade.id)}
                         title="Ver checklist"
                         type="button"
+                        variant="ghost"
                       >
                         {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   {isExpanded && (
@@ -438,8 +506,9 @@ const ProfileOpportunities = ({
                             ({completedCount}/{totalCount})
                           </span>
                         </h4>
-                        <button
+                        <Button
                           className="rounded-full bg-slate-950 p-2 text-sm text-white hover:bg-slate-800"
+                          disabled={isApproved}
                           onClick={() =>
                             setShowAddMenu(
                               showAddMenu === oportunidade.id
@@ -447,17 +516,25 @@ const ProfileOpportunities = ({
                                 : oportunidade.id
                             )
                           }
+                          title={
+                            isApproved
+                              ? "Checklist em modo leitura para oportunidades aprovadas"
+                              : "Adicionar item"
+                          }
                           type="button"
+                          variant="ghost"
                         >
                           {showAddMenu === oportunidade.id ? (
                             <FaChevronUp />
                           ) : (
                             <FaPlus />
                           )}
-                        </button>
+                        </Button>
                       </div>
                       <p className="mb-4 text-sm text-white">
-                        Adicione tarefas para acompanhar sua aplicação.
+                        {isApproved
+                          ? "Oportunidade concluída. O checklist está em modo leitura."
+                          : "Adicione tarefas para acompanhar sua aplicação."}
                       </p>
                       {showNearDeadlineWarning && (
                         <p className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-red-200 text-sm">
@@ -465,39 +542,46 @@ const ProfileOpportunities = ({
                         </p>
                       )}
                       {showSuggestMarkAsApplied && (
-                        <div className="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-emerald-200 text-sm">
+                        <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-amber-200 text-sm">
                           <p className="mb-2 font-semibold">
                             Marcar como aplicado?
                           </p>
-                          <button
-                            className="rounded-full bg-emerald-500 px-3 py-1.5 font-bold text-black transition-colors hover:bg-emerald-600"
+                          <Button
+                            className="rounded-full bg-amber-500 px-3 py-1.5 font-bold text-black transition-colors hover:bg-amber-600"
                             onClick={() =>
-                              handleRequestStatusChange(oportunidade.id, "Inscrito")
+                              handleRequestStatusChange(
+                                oportunidade.id,
+                                "Inscrito"
+                              )
                             }
                             type="button"
+                            variant="ghost"
                           >
                             Sim, marcar agora
-                          </button>
+                          </Button>
                         </div>
                       )}
-                      {showAddMenu === oportunidade.id && (
+                      {showAddMenu === oportunidade.id && !isApproved && (
                         <div className="mb-4 flex gap-2">
-                          <input
+                          <Input
                             className="flex-1 rounded-md border border-slate-900 bg-slate-950 p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            disabled={isApproved}
                             onChange={(e) => setCustomItem(e.target.value)}
                             placeholder="Novo item da checklist"
                             type="text"
                             value={customItem}
                           />
-                          <button
+                          <Button
                             className="rounded-md bg-amber-500 px-3 py-2 font-bold text-black text-sm"
+                            disabled={isApproved}
                             onClick={() =>
                               handleAddItem(oportunidade.id, customItem)
                             }
                             type="button"
+                            variant="ghost"
                           >
                             Adicionar
-                          </button>
+                          </Button>
                         </div>
                       )}
                       <ul className="space-y-2">
@@ -507,13 +591,13 @@ const ProfileOpportunities = ({
                             key={`${oportunidade.id}-${item.text}`}
                           >
                             <div className="flex flex-1 items-center space-x-2">
-                              <input
+                              <Checkbox
                                 checked={item.completed}
                                 className="rounded border-slate-900 bg-slate-900 text-amber-500 focus:ring-amber-500"
-                                onChange={() =>
+                                disabled={isApproved}
+                                onCheckedChange={() =>
                                   handleChecklistItem(oportunidade.id, index)
                                 }
-                                type="checkbox"
                               />
                               <span
                                 className={`text-sm ${item.completed ? "text-white line-through" : "text-white"}`}
@@ -521,16 +605,18 @@ const ProfileOpportunities = ({
                                 {item.text}
                               </span>
                             </div>
-                            <button
+                            <Button
                               className="text-white transition-colors hover:text-red-500"
+                              disabled={isApproved}
                               onClick={() =>
                                 handleDeleteItem(oportunidade.id, index)
                               }
                               title="Remover item"
                               type="button"
+                              variant="ghost"
                             >
                               <FaTimesCircle />
-                            </button>
+                            </Button>
                           </li>
                         ))}
                       </ul>
@@ -542,67 +628,28 @@ const ProfileOpportunities = ({
           })
         ) : (
           <p className="col-span-full text-center text-white">
-            Você ainda não salvou nenhum intercâmbio.
+            Você ainda não salvou nenhuma oportunidade.
           </p>
         )}
       </div>
 
-      {deleteConfirmation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-          <div className="w-full max-w-md rounded-lg border border-slate-950 bg-slate-900 p-8 text-center shadow-xl">
-            <p className="mb-6 text-lg text-white">
-              Tem certeza que deseja remover este item?
-            </p>
-            <div className="flex justify-center gap-4">
-              <button
-                className="rounded-full bg-amber-500 px-6 py-2 font-semibold text-black transition-colors hover:bg-amber-600"
-                onClick={handleConfirmDelete}
-                type="button"
-              >
-                Sim
-              </button>
-              <button
-                className="rounded-full bg-slate-950 px-6 py-2 font-semibold text-white transition-colors hover:bg-slate-800"
-                onClick={() => setDeleteConfirmation(null)}
-                type="button"
-              >
-                Não
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        accentColor="amber"
+        confirmText="Sim"
+        isOpen={Boolean(deleteConfirmation)}
+        message="Tem certeza que deseja remover este item?"
+        onCancel={() => setDeleteConfirmation(null)}
+        onConfirm={handleConfirmDelete}
+      />
 
-      {pendingStatusChange && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-          <div className="w-full max-w-md rounded-lg border border-slate-950 bg-slate-900 p-8 text-center shadow-xl">
-            <p className="mb-6 text-lg text-white">
-              Deseja alterar o status para
-              {" "}
-              <span className="font-bold text-amber-500">
-                {pendingStatusChange.nextStatus}
-              </span>
-              ?
-            </p>
-            <div className="flex justify-center gap-4">
-              <button
-                className="rounded-full bg-amber-500 px-6 py-2 font-semibold text-black transition-colors hover:bg-amber-600"
-                onClick={handleConfirmStatusChange}
-                type="button"
-              >
-                Sim
-              </button>
-              <button
-                className="rounded-full bg-slate-950 px-6 py-2 font-semibold text-white transition-colors hover:bg-slate-800"
-                onClick={() => setPendingStatusChange(null)}
-                type="button"
-              >
-                Não
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        accentColor="amber"
+        confirmText="Sim"
+        isOpen={Boolean(pendingStatusChange)}
+        message={`Deseja alterar o status para ${pendingStatusChange?.nextStatus ?? ""}?`}
+        onCancel={() => setPendingStatusChange(null)}
+        onConfirm={handleConfirmStatusChange}
+      />
     </div>
   )
 }

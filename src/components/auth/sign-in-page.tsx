@@ -1,15 +1,40 @@
 import { useState } from "react"
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"
+import { useForm } from "react-hook-form"
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom"
 import { signIn } from "../../lib/auth-client"
 import AuthLayout from "./auth-layout"
-import { AuthButton, AuthError, AuthInput, AuthSuccess, GoogleIcon } from "./auth-ui"
+import {
+  AuthButton,
+  AuthError,
+  AuthInput,
+  AuthSuccess,
+  GoogleIcon,
+} from "./auth-ui"
+
+interface SignInFormValues {
+  email: string
+  password: string
+}
 
 const SignInPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const {
+    formState: { errors },
+    handleSubmit,
+    register,
+  } = useForm<SignInFormValues>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  })
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
@@ -20,8 +45,7 @@ const SignInPage = () => {
       ?.pathname ?? "/perfil"
   const callbackURL = `${window.location.origin}${fromPath}`
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmitForm = async ({ email, password }: SignInFormValues) => {
     setError(null)
     setIsLoading(true)
 
@@ -82,7 +106,7 @@ const SignInPage = () => {
           <div className="h-px flex-1 bg-slate-700" />
         </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit(handleSubmitForm)}>
           <AuthSuccess
             message={
               emailVerified
@@ -94,25 +118,29 @@ const SignInPage = () => {
 
           <AuthInput
             autoComplete="email"
+            errorMessage={errors.email?.message}
             id="email"
             label="E-mail"
-            onChange={setEmail}
             placeholder="seu@email.com"
+            registration={register("email", {
+              required: "Informe seu e-mail.",
+            })}
             required
             type="email"
-            value={email}
           />
 
           <div className="space-y-1">
             <AuthInput
               autoComplete="current-password"
+              errorMessage={errors.password?.message}
               id="password"
               label="Senha"
-              onChange={setPassword}
               placeholder="••••••••"
+              registration={register("password", {
+                required: "Informe sua senha.",
+              })}
               required
               type="password"
-              value={password}
             />
             <div className="flex justify-end">
               <Link

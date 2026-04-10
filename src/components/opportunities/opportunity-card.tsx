@@ -1,6 +1,9 @@
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaTag } from "react-icons/fa"
 import { Link } from "react-router-dom"
-import { getTimeRemaining, getTimeRemainingBadgeClass } from "../../lib/date-utils"
+import {
+  getTimeRemaining,
+  getTimeRemainingBadgeClass,
+} from "../../lib/date-utils"
 import type { Opportunity, OpportunityCardConfig } from "./types"
 import {
   getOpportunityLocation,
@@ -22,14 +25,24 @@ const OpportunityCard = ({
   isVisible,
   index,
 }: OpportunityCardProps) => {
-  const { accentColor, basePath, showScholarship, showDuration, showModalidade } =
-    config
+  const {
+    accentColor,
+    basePath,
+    showScholarship,
+    showDuration,
+    showModalidade,
+  } = config
 
   const timeRemaining = getTimeRemaining(opportunity.prazoInscricao)
-  const deadlineBadgeClass = getTimeRemainingBadgeClass(opportunity.prazoInscricao)
-  const iconColorClass = accentColor === "blue" ? "text-blue-400" : "text-amber-500"
+  const deadlineBadgeClass = getTimeRemainingBadgeClass(
+    opportunity.prazoInscricao
+  )
+  const iconColorClass =
+    accentColor === "blue" ? "text-blue-400" : "text-amber-500"
   const hoverShadowClass =
-    accentColor === "blue" ? "hover:shadow-blue-500/30" : "hover:shadow-amber-500/30"
+    accentColor === "blue"
+      ? "hover:shadow-blue-500/30"
+      : "hover:shadow-amber-500/30"
 
   const scholarshipClasses =
     isInternationalOpportunity(opportunity) && showScholarship
@@ -99,7 +112,9 @@ const OpportunityCard = ({
           </div>
           <div className="mb-1 flex items-center space-x-2">
             <FaMapMarkerAlt className={`${iconColorClass} text-sm`} />
-            <span className="text-sm">{getOpportunityLocation(opportunity)}</span>
+            <span className="text-sm">
+              {getOpportunityLocation(opportunity)}
+            </span>
           </div>
           <div className="mb-1 flex items-center space-x-2">
             <FaCalendarAlt className={`${iconColorClass} text-sm`} />

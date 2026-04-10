@@ -8,6 +8,7 @@ import {
   FaTimesCircle,
 } from "react-icons/fa"
 import type { IconType } from "react-icons/lib"
+import { Button } from "@/components/ui/button"
 
 type AccentColor = "amber" | "blue"
 
@@ -68,12 +69,14 @@ const OpportunitiesMainLayout = ({
 
   const accentClasses = {
     text: accentColor === "blue" ? "text-blue-400" : "text-amber-500",
-    border: accentColor === "blue" ? "border-blue-500/20" : "border-amber-500/20",
+    border:
+      accentColor === "blue" ? "border-blue-500/20" : "border-amber-500/20",
     button:
       accentColor === "blue"
         ? "bg-blue-500 hover:bg-blue-600 text-white"
         : "bg-amber-500 hover:bg-amber-600 text-black",
-    hoverText: accentColor === "blue" ? "hover:text-blue-400" : "hover:text-amber-500",
+    hoverText:
+      accentColor === "blue" ? "hover:text-blue-400" : "hover:text-amber-500",
   }
 
   const handleToggleFilterSidebar = () => {
@@ -98,13 +101,14 @@ const OpportunitiesMainLayout = ({
           key={`${filter.key}-${filter.value}`}
         >
           {filter.value}
-          <button
+          <Button
             className="text-white opacity-70 transition-opacity hover:opacity-100"
             onClick={() => onRemoveFilter(filter.key, filter.value)}
             type="button"
+            variant="ghost"
           >
             <FaTimesCircle className="ml-1" />
-          </button>
+          </Button>
         </span>
       ))}
     </div>
@@ -134,9 +138,13 @@ const OpportunitiesMainLayout = ({
         >
           <div className="mb-2 flex items-center justify-center gap-2">
             <Icon className={`text-3xl ${accentClasses.text}`} />
-            <h1 className={`font-bold text-3xl ${accentClasses.text}`}>{title}</h1>
+            <h1 className={`font-bold text-3xl ${accentClasses.text}`}>
+              {title}
+            </h1>
           </div>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-white/50">{subtitle}</p>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-white/50">
+            {subtitle}
+          </p>
         </div>
       )}
 
@@ -144,35 +152,40 @@ const OpportunitiesMainLayout = ({
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-75 md:hidden">
           <div className="max-h-[90vh] w-11/12 overflow-y-auto rounded-lg bg-slate-900 p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className={`font-bold ${accentClasses.text} text-lg`}>Filtros</h2>
-              <button
+              <h2 className={`font-bold ${accentClasses.text} text-lg`}>
+                Filtros
+              </h2>
+              <Button
                 className={`text-white ${accentClasses.hoverText}`}
                 onClick={handleToggleFilterSidebar}
                 type="button"
+                variant="ghost"
               >
                 <FaTimes size={24} />
-              </button>
+              </Button>
             </div>
             {mobileFilterComponent}
             <div className="mt-4 flex gap-2">
-              <button
+              <Button
                 className={`w-full rounded-lg ${accentClasses.button} py-2 font-semibold transition-colors`}
                 onClick={handleApplyFilters}
                 type="button"
+                variant="ghost"
               >
                 <span className="flex items-center justify-center gap-2">
                   <FaCheck /> Aplicar Filtros
                 </span>
-              </button>
-              <button
+              </Button>
+              <Button
                 className="w-full rounded-lg bg-red-500 py-2 font-semibold text-white transition-colors hover:bg-red-600"
                 onClick={handleClearAllFilters}
                 type="button"
+                variant="ghost"
               >
                 <span className="flex items-center justify-center gap-2">
                   <FaTimes /> Limpar Filtros
                 </span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -185,7 +198,9 @@ const OpportunitiesMainLayout = ({
           <div
             className={`sticky top-24 rounded-lg border ${accentClasses.border} bg-slate-900 p-6 shadow-lg`}
           >
-            <div className={`mb-4 flex items-center font-bold ${accentClasses.text} text-lg`}>
+            <div
+              className={`mb-4 flex items-center font-bold ${accentClasses.text} text-lg`}
+            >
               <FaFilter className={`mr-2 ${accentClasses.text}`} />
               Filtros
             </div>
@@ -201,13 +216,14 @@ const OpportunitiesMainLayout = ({
               {`Exibindo ${resultCount} oportunidades`}
             </p>
             <div className="mt-4 w-full md:hidden">
-              <button
+              <Button
                 className={`flex w-full items-center justify-center gap-2 rounded-lg ${accentClasses.button} py-2 font-semibold transition-colors`}
                 onClick={handleToggleFilterSidebar}
                 type="button"
+                variant="ghost"
               >
                 <FaSlidersH /> Abrir Filtros
-              </button>
+              </Button>
             </div>
             {renderAppliedFilters()}
           </div>
@@ -229,13 +245,14 @@ const OpportunitiesMainLayout = ({
               <p className="mb-6 text-sm text-white/60">
                 Tente ajustar seus filtros para ver mais resultados.
               </p>
-              <button
+              <Button
                 className={`rounded-full ${accentClasses.button} px-6 py-2 font-bold transition-colors duration-300`}
                 onClick={handleClearAllFilters}
                 type="button"
+                variant="ghost"
               >
                 Limpar Todos os Filtros
-              </button>
+              </Button>
             </div>
           )}
         </div>

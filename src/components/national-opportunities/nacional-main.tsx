@@ -50,28 +50,28 @@ const applyOpportunityFilters = (
   }
   if (filtros.nivelEnsino.length > 0) {
     result = result.filter((op) =>
-      filtros.nivelEnsino.some(nivel =>
+      filtros.nivelEnsino.some((nivel) =>
         op.nivelEnsino.toLowerCase().includes(nivel.toLowerCase())
       )
     )
   }
   if (filtros.tipo.length > 0) {
     result = result.filter((op) =>
-      filtros.tipo.some(tipo =>
+      filtros.tipo.some((tipo) =>
         op.tipo.toLowerCase().includes(tipo.toLowerCase())
       )
     )
   }
   if (filtros.taxaAplicacao.length > 0) {
     result = result.filter((op) =>
-      filtros.taxaAplicacao.some(taxa =>
+      filtros.taxaAplicacao.some((taxa) =>
         op.taxaAplicacao.toLowerCase().includes(taxa.toLowerCase())
       )
     )
   }
   if (filtros.modalidade.length > 0) {
     result = result.filter((op) =>
-      filtros.modalidade.some(modalidade =>
+      filtros.modalidade.some((modalidade) =>
         op.modalidade.toLowerCase().includes(modalidade.toLowerCase())
       )
     )

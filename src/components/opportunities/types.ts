@@ -1,4 +1,7 @@
-import type { InternationalOpportunity, NationalOpportunity } from "../../lib/opportunities-api"
+import type {
+  InternationalOpportunity,
+  NationalOpportunity,
+} from "../../lib/opportunities-api"
 
 export type OpportunityType = "international" | "national"
 

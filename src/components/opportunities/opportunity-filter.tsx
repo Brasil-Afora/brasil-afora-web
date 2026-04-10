@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from "react"
 import { useCallback, useRef } from "react"
-import useClickOutside from "../../hooks/use-click-outside"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import FilterDropdown from "../ui/filter-dropdown"
 import { FILTER_OPTIONS } from "./filter-options"
 
@@ -73,24 +74,27 @@ function OpportunityFilter<T extends Filters>({
   )
 
   const isFilterActive = useCallback(() => {
-    if (filtros.idade !== "") return true
-    if (filtros.nivelEnsino.length > 0) return true
-    if (filtros.tipo.length > 0) return true
-    if (filtros.taxaAplicacao.length > 0) return true
+    const hasBaseFilters =
+      filtros.idade !== "" ||
+      [filtros.nivelEnsino, filtros.tipo, filtros.taxaAplicacao].some(
+        (filter) => filter.length > 0
+      )
 
     if (isInternationalFilters(filtros)) {
-      if (filtros.pais.length > 0) return true
-      if (filtros.requisitosIdioma.length > 0) return true
-      if (filtros.tipoBolsa.length > 0) return true
-    } else {
-      if ((filtros as NationalFilters).modalidade.length > 0) return true
+      return (
+        hasBaseFilters ||
+        [filtros.pais, filtros.requisitosIdioma, filtros.tipoBolsa].some(
+          (filter) => filter.length > 0
+        )
+      )
     }
 
-    return false
+    return hasBaseFilters || (filtros as NationalFilters).modalidade.length > 0
   }, [filtros])
 
   const accentClasses = {
-    focus: accentColor === "blue" ? "focus:ring-blue-500" : "focus:ring-amber-500",
+    focus:
+      accentColor === "blue" ? "focus:ring-blue-500" : "focus:ring-amber-500",
     button:
       accentColor === "blue"
         ? "bg-blue-500 text-white hover:bg-blue-600"
@@ -120,7 +124,9 @@ function OpportunityFilter<T extends Filters>({
         accentColor={accentColor}
         cols={1}
         label="Nível de Ensino"
-        onChange={(value) => handleCheckboxChange("nivelEnsino" as keyof T, value)}
+        onChange={(value) =>
+          handleCheckboxChange("nivelEnsino" as keyof T, value)
+        }
         options={FILTER_OPTIONS.niveisEnsino}
         placeholder="Qualquer nível"
         selected={filtros.nivelEnsino}
@@ -135,8 +141,8 @@ function OpportunityFilter<T extends Filters>({
             onChange={(value) => handleCheckboxChange("pais" as keyof T, value)}
             options={FILTER_OPTIONS.paises}
             placeholder="Todos os países"
-            searchPlaceholder="Pesquisar país..."
             searchable
+            searchPlaceholder="Pesquisar país..."
             selected={filtros.pais}
           />
 
@@ -158,7 +164,9 @@ function OpportunityFilter<T extends Filters>({
         accentColor={accentColor}
         cols={1}
         label="Taxa de Aplicação"
-        onChange={(value) => handleCheckboxChange("taxaAplicacao" as keyof T, value)}
+        onChange={(value) =>
+          handleCheckboxChange("taxaAplicacao" as keyof T, value)
+        }
         options={FILTER_OPTIONS.taxaAplicacao}
         placeholder="Qualquer taxa"
         selected={filtros.taxaAplicacao}
@@ -169,7 +177,9 @@ function OpportunityFilter<T extends Filters>({
           accentColor={accentColor}
           cols={1}
           label="Tipo de Bolsa"
-          onChange={(value) => handleCheckboxChange("tipoBolsa" as keyof T, value)}
+          onChange={(value) =>
+            handleCheckboxChange("tipoBolsa" as keyof T, value)
+          }
           options={FILTER_OPTIONS.tipoBolsa}
           placeholder="Qualquer bolsa"
           selected={filtros.tipoBolsa}
@@ -181,7 +191,9 @@ function OpportunityFilter<T extends Filters>({
           accentColor={accentColor}
           cols={1}
           label="Modalidade"
-          onChange={(value) => handleCheckboxChange("modalidade" as keyof T, value)}
+          onChange={(value) =>
+            handleCheckboxChange("modalidade" as keyof T, value)
+          }
           options={FILTER_OPTIONS.modalidade}
           placeholder="Qualquer modalidade"
           selected={(filtros as NationalFilters).modalidade}
@@ -192,7 +204,7 @@ function OpportunityFilter<T extends Filters>({
         <label className="mb-1 block text-white text-xs" htmlFor="idade">
           <span className={accentClasses.label}>Sua idade</span>
         </label>
-        <input
+        <Input
           className={inputClasses}
           id="idade"
           onChange={handleInputChange}
@@ -203,14 +215,15 @@ function OpportunityFilter<T extends Filters>({
       </div>
 
       <div className="mt-2 hidden md:block">
-        <button
+        <Button
           className={`w-full rounded-lg py-2 font-semibold text-sm transition-colors duration-200 ${isFilterActive() ? accentClasses.button : "cursor-not-allowed bg-slate-900 text-slate-500"}`}
           disabled={!isFilterActive()}
           onClick={() => setFiltros(filtrosIniciais)}
           type="button"
+          variant="ghost"
         >
           Limpar Filtros
-        </button>
+        </Button>
       </div>
     </div>
   )
